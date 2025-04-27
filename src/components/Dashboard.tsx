@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Invoice } from '@/types/invoice';
@@ -9,6 +8,7 @@ import InvoiceCard from './InvoiceCard';
 import InvoiceFilter from './InvoiceFilter';
 import { FilterOptions } from '@/types/invoice';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import InvoiceDetailsDialog from './InvoiceDetailsDialog';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -19,7 +19,9 @@ const Dashboard = () => {
     utilityType: 'all',
     paymentStatus: 'all'
   });
-  const [viewType, setViewType] = useState<'list' | 'grid'>('grid');
+  const [viewType, setViewType] = useState<'list' | 'grid'>('list');
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     loadInvoices();
@@ -62,7 +64,6 @@ const Dashboard = () => {
   };
 
   const handleTogglePaid = (invoice: Invoice) => {
-    // This will be implemented in a future update
     const updatedInvoice = { ...invoice, isPaid: !invoice.isPaid };
     setInvoices(prev => prev.map(inv => inv.id === invoice.id ? updatedInvoice : inv));
     toast({
@@ -72,20 +73,17 @@ const Dashboard = () => {
   };
 
   const handleDeleteInvoice = (invoice: Invoice) => {
-    // This will be implemented in a future update
     setInvoices(prev => prev.filter(inv => inv.id !== invoice.id));
     toast({
       title: "Invoice deleted",
       description: `Invoice ${invoice.invoiceNumber} has been deleted`
     });
+    setDialogOpen(false);
   };
 
   const handleViewDetails = (invoice: Invoice) => {
-    // This will be implemented in a future update
-    toast({
-      title: "View invoice details",
-      description: `Viewing details for invoice ${invoice.invoiceNumber}`
-    });
+    setSelectedInvoice(invoice);
+    setDialogOpen(true);
   };
 
   const handleFilterChange = (newFilters: FilterOptions) => {
@@ -93,17 +91,14 @@ const Dashboard = () => {
   };
 
   const filteredInvoices = invoices.filter(invoice => {
-    // Filter by address
     if (filters.address && !invoice.address.toLowerCase().includes(filters.address.toLowerCase())) {
       return false;
     }
     
-    // Filter by utility type
     if (filters.utilityType !== 'all' && invoice.utilityType !== filters.utilityType) {
       return false;
     }
     
-    // Filter by payment status
     if (filters.paymentStatus === 'paid' && !invoice.isPaid) {
       return false;
     }
@@ -130,8 +125,8 @@ const Dashboard = () => {
             <h2 className="text-xl font-semibold">Your Invoices</h2>
             <Tabs value={viewType} onValueChange={(value) => setViewType(value as 'list' | 'grid')} className="w-[200px]">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="grid">Grid</TabsTrigger>
                 <TabsTrigger value="list">List</TabsTrigger>
+                <TabsTrigger value="grid">Grid</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -188,19 +183,14 @@ const Dashboard = () => {
                             {invoice.isPaid ? 'Paid' : 'Unpaid'}
                           </span>
                         </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <button 
-                            className="text-sm underline text-blue-600 hover:text-blue-800"
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
                             onClick={() => handleViewDetails(invoice)}
                           >
                             View
-                          </button>
-                          <button 
-                            className="text-sm underline text-red-600 hover:text-red-800"
-                            onClick={() => handleDeleteInvoice(invoice)}
-                          >
-                            Delete
-                          </button>
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -211,6 +201,13 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+
+      <InvoiceDetailsDialog 
+        invoice={selectedInvoice}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onTogglePaid={handleTogglePaid}
+      />
     </div>
   );
 };

@@ -38,7 +38,6 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
   invoice, 
   onViewDetails, 
   onTogglePaid,
-  onDelete 
 }) => {
   const { utilityType, address, invoiceNumber, invoiceDate, amount, isPaid } = invoice;
   
@@ -46,13 +45,6 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     style: 'currency',
     currency: 'USD',
   }).format(amount);
-  
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (window.confirm('Are you sure you want to delete this invoice?')) {
-      onDelete(invoice);
-    }
-  };
 
   return (
     <Card className={cn(
@@ -100,15 +92,6 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
         >
           {isPaid ? "Mark Unpaid" : "Mark Paid"}
           {isPaid && <Check className="h-3 w-3 ml-1" />}
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-xs text-destructive hover:text-destructive-foreground hover:bg-destructive"
-          onClick={handleDelete}
-        >
-          <Trash2 className="h-3 w-3 mr-1" />
-          Delete
         </Button>
         <Button 
           size="sm"
