@@ -54,3 +54,45 @@ export const fetchInvoices = async (): Promise<Invoice[]> => {
     fileName: item.file_name
   }));
 };
+
+/**
+ * Updates an invoice in the database
+ */
+export const updateInvoice = async (invoice: Invoice): Promise<Invoice> => {
+  const { error } = await supabase
+    .from('invoices')
+    .update({
+      customer_number: invoice.customerNumber,
+      invoice_number: invoice.invoiceNumber,
+      address: invoice.address,
+      invoice_date: invoice.invoiceDate,
+      due_date: invoice.dueDate,
+      amount: invoice.amount,
+      is_paid: invoice.isPaid,
+      utility_type: invoice.utilityType,
+      file_name: invoice.fileName
+    })
+    .eq('id', invoice.id);
+
+  if (error) {
+    console.error("Error updating invoice:", error);
+    throw new Error(`Failed to update invoice: ${error.message}`);
+  }
+
+  return invoice;
+};
+
+/**
+ * Deletes an invoice from the database
+ */
+export const deleteInvoice = async (invoiceId: string): Promise<void> => {
+  const { error } = await supabase
+    .from('invoices')
+    .delete()
+    .eq('id', invoiceId);
+
+  if (error) {
+    console.error("Error deleting invoice:", error);
+    throw new Error(`Failed to delete invoice: ${error.message}`);
+  }
+};

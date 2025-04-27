@@ -4,9 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Check, X } from 'lucide-react';
+import { Check, X, AlertTriangle } from 'lucide-react';
 import { Invoice, UtilityType } from '@/types/invoice';
 import {
   Form,
@@ -16,6 +14,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Badge } from '@/components/ui/badge';
 
 interface InvoicePreviewCardProps {
   invoice: Partial<Invoice>;
@@ -65,17 +65,23 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
   };
 
   const missingFields = getMissingFields();
+  const requiredFieldsComplete = missingFields.length === 0;
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex justify-between items-center">
           <span>Invoice Preview</span>
-          {missingFields.length > 0 && (
-            <span className="text-sm font-normal text-amber-600 bg-amber-50 px-3 py-1 rounded-full flex items-center">
-              <X className="w-4 h-4 mr-1" />
-              {missingFields.length} missing fields
-            </span>
+          {missingFields.length > 0 ? (
+            <Badge variant="outline" className="bg-amber-50 text-amber-600 hover:bg-amber-100 flex gap-1 items-center py-1 px-3">
+              <AlertTriangle className="h-4 w-4" />
+              <span>{missingFields.length} missing fields</span>
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="bg-green-50 text-green-600 hover:bg-green-100 flex gap-1 items-center py-1 px-3">
+              <Check className="h-4 w-4" />
+              <span>All fields complete</span>
+            </Badge>
           )}
         </CardTitle>
       </CardHeader>
@@ -88,7 +94,8 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
                 name="customerNumber"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel className={!field.value ? "text-red-500" : ""}>
+                    <FormLabel className={!field.value ? "text-red-500 flex items-center gap-1" : ""}>
+                      {!field.value && <AlertTriangle className="h-3 w-3" />}
                       Customer Number {!field.value && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <FormControl>
@@ -104,7 +111,8 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
                 name="invoiceNumber"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel className={!field.value ? "text-red-500" : ""}>
+                    <FormLabel className={!field.value ? "text-red-500 flex items-center gap-1" : ""}>
+                      {!field.value && <AlertTriangle className="h-3 w-3" />}
                       Invoice Number {!field.value && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <FormControl>
@@ -120,7 +128,8 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
                 name="address"
                 render={({ field }) => (
                   <FormItem className="space-y-1 md:col-span-2">
-                    <FormLabel className={!field.value ? "text-red-500" : ""}>
+                    <FormLabel className={!field.value ? "text-red-500 flex items-center gap-1" : ""}>
+                      {!field.value && <AlertTriangle className="h-3 w-3" />}
                       Address {!field.value && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <FormControl>
@@ -136,7 +145,8 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
                 name="invoiceDate"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel className={!field.value ? "text-red-500" : ""}>
+                    <FormLabel className={!field.value ? "text-red-500 flex items-center gap-1" : ""}>
+                      {!field.value && <AlertTriangle className="h-3 w-3" />}
                       Invoice Date {!field.value && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <FormControl>
@@ -152,7 +162,8 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
                 name="dueDate"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel className={!field.value ? "text-red-500" : ""}>
+                    <FormLabel className={!field.value ? "text-red-500 flex items-center gap-1" : ""}>
+                      {!field.value && <AlertTriangle className="h-3 w-3" />}
                       Due Date {!field.value && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <FormControl>
@@ -168,7 +179,8 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
                 name="amount"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel className={field.value === 0 ? "text-red-500" : ""}>
+                    <FormLabel className={field.value === 0 ? "text-red-500 flex items-center gap-1" : ""}>
+                      {field.value === 0 && <AlertTriangle className="h-3 w-3" />}
                       Amount {field.value === 0 && <span className="text-red-500">*</span>}
                     </FormLabel>
                     <FormControl>
@@ -217,7 +229,7 @@ const InvoicePreviewCard: React.FC<InvoicePreviewCardProps> = ({
                 <X className="mr-2 h-4 w-4" />
                 Cancel
               </Button>
-              <Button type="submit">
+              <Button type="submit" disabled={!requiredFieldsComplete}>
                 <Check className="mr-2 h-4 w-4" />
                 Save Invoice
               </Button>
