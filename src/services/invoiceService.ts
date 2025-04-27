@@ -1,6 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { Invoice } from "@/types/invoice";
+import { Invoice, UtilityType } from "@/types/invoice";
 
 /**
  * Saves an invoice to the database
