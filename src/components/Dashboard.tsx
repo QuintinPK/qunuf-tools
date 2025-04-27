@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Invoice } from '@/types/invoice';
 import InvoiceUploader from './InvoiceUploader';
-import { fetchInvoices, saveInvoice } from '@/services/invoiceService';
+import { fetchInvoices, saveInvoice, updateInvoice, deleteInvoice } from '@/services/invoiceService';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Button } from './ui/button';
 import InvoiceCard from './InvoiceCard';
@@ -66,22 +67,51 @@ const Dashboard = () => {
     }
   };
 
-  const handleTogglePaid = (invoice: Invoice) => {
-    const updatedInvoice = { ...invoice, isPaid: !invoice.isPaid };
-    setInvoices(prev => prev.map(inv => inv.id === invoice.id ? updatedInvoice : inv));
-    toast({
-      title: updatedInvoice.isPaid ? "Invoice marked as paid" : "Invoice marked as unpaid",
-      description: `Invoice ${invoice.invoiceNumber} has been updated`
-    });
+  const handleTogglePaid = async (invoice: Invoice, paymentDate?: Date) => {
+    try {
+      const updatedInvoice = { 
+        ...invoice, 
+        isPaid: !invoice.isPaid,
+        paymentDate: invoice.isPaid ? undefined : paymentDate ? paymentDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+      };
+      
+      await updateInvoice(updatedInvoice);
+      setInvoices(prev => prev.map(inv => inv.id === invoice.id ? updatedInvoice : inv));
+      
+      toast({
+        title: updatedInvoice.isPaid ? "Invoice marked as paid" : "Invoice marked as unpaid",
+        description: `Invoice ${invoice.invoiceNumber} has been updated`
+      });
+      
+      return updatedInvoice;
+    } catch (error) {
+      console.error("Error updating invoice:", error);
+      toast({
+        title: "Error updating invoice",
+        description: "There was an error updating the invoice payment status",
+        variant: "destructive"
+      });
+      return invoice;
+    }
   };
 
-  const handleDeleteInvoice = (invoice: Invoice) => {
-    setInvoices(prev => prev.filter(inv => inv.id !== invoice.id));
-    toast({
-      title: "Invoice deleted",
-      description: `Invoice ${invoice.invoiceNumber} has been deleted`
-    });
-    setDialogOpen(false);
+  const handleDeleteInvoice = async (invoice: Invoice) => {
+    try {
+      await deleteInvoice(invoice.id);
+      setInvoices(prev => prev.filter(inv => inv.id !== invoice.id));
+      toast({
+        title: "Invoice deleted",
+        description: `Invoice ${invoice.invoiceNumber} has been deleted`
+      });
+      setDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting invoice:", error);
+      toast({
+        title: "Error deleting invoice",
+        description: "There was an error deleting the invoice",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleViewDetails = (invoice: Invoice) => {
@@ -115,8 +145,6 @@ const Dashboard = () => {
 
   return (
     <div className="container mx-auto p-4 max-w-5xl">
-      <h1 className="text-2xl font-bold mb-8">Invoice Processing Dashboard</h1>
-      
       <div className="grid gap-8">
         <div>
           <h2 className="text-xl font-semibold mb-4">Upload New Invoice</h2>

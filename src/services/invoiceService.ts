@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice, UtilityType } from "@/types/invoice";
 
@@ -16,7 +17,8 @@ export const saveInvoice = async (invoice: Invoice): Promise<Invoice> => {
       amount: invoice.amount,
       is_paid: invoice.isPaid,
       utility_type: invoice.utilityType,
-      file_name: invoice.fileName
+      file_name: invoice.fileName,
+      payment_date: invoice.paymentDate
     });
 
   if (error) {
@@ -49,6 +51,7 @@ export const fetchInvoices = async (): Promise<Invoice[]> => {
     dueDate: item.due_date,
     amount: item.amount,
     isPaid: item.is_paid || false,
+    paymentDate: item.payment_date,
     utilityType: item.utility_type as UtilityType || "water",
     fileName: item.file_name
   }));

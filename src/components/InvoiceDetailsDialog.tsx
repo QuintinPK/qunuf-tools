@@ -1,12 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { Download, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { Download, CheckCircle2, XCircle, Trash2, Save } from 'lucide-react';
 import { Invoice } from '@/types/invoice';
 import { cn } from '@/lib/utils';
 
@@ -14,7 +14,7 @@ interface InvoiceDetailsDialogProps {
   invoice: Invoice | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTogglePaid: (invoice: Invoice, paymentDate?: Date) => void;
+  onTogglePaid: (invoice: Invoice, paymentDate?: Date) => Promise<Invoice>;
   onDelete: (invoice: Invoice) => void;
 }
 
@@ -27,21 +27,31 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
 }) => {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [localInvoice, setLocalInvoice] = useState<Invoice | null>(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
-  if (!invoice) return null;
+  useEffect(() => {
+    if (invoice) {
+      setLocalInvoice({...invoice});
+      setSelectedDate(invoice.paymentDate ? new Date(invoice.paymentDate) : undefined);
+      setHasChanges(false);
+    }
+  }, [invoice]);
+
+  if (!invoice || !localInvoice) return null;
 
   const formattedAmount = new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
-  }).format(invoice.amount);
+  }).format(localInvoice.amount);
 
   const handleDownload = () => {
-    if (invoice.pdfBlob) {
-      const url = URL.createObjectURL(invoice.pdfBlob);
+    if (localInvoice.pdfBlob) {
+      const url = URL.createObjectURL(localInvoice.pdfBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = invoice.fileName;
+      a.download = localInvoice.fileName;
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(url);
@@ -50,25 +60,51 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
   };
 
   const handleViewOriginal = () => {
-    if (invoice.pdfBlob) {
-      const url = URL.createObjectURL(invoice.pdfBlob);
+    if (localInvoice.pdfBlob) {
+      const url = URL.createObjectURL(localInvoice.pdfBlob);
       window.open(url, '_blank');
     }
   };
 
   const handlePaidClick = () => {
-    if (!invoice.isPaid) {
+    if (!localInvoice.isPaid) {
       setShowCalendar(true);
     } else {
-      onTogglePaid(invoice);
+      handleTogglePaidStatus();
+    }
+  };
+
+  const handleTogglePaidStatus = async (date?: Date) => {
+    try {
+      const updatedInvoice = await onTogglePaid(localInvoice, date);
+      setLocalInvoice(updatedInvoice);
+      setHasChanges(false);
+      
+      if (date) {
+        setSelectedDate(date);
+      }
+      
+      return updatedInvoice;
+    } catch (error) {
+      console.error("Error updating invoice payment status:", error);
+      return localInvoice;
     }
   };
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
       setSelectedDate(date);
-      onTogglePaid(invoice, date);
+      handleTogglePaidStatus(date);
       setShowCalendar(false);
+    }
+  };
+
+  const handleSaveAndClose = async () => {
+    try {
+      await onTogglePaid(localInvoice, selectedDate);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error saving invoice:", error);
     }
   };
 
@@ -80,44 +116,44 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
             <DialogTitle className="flex justify-between items-center">
               <span>Invoice Details</span>
               <Badge
-                variant={invoice.isPaid ? "outline" : "default"}
+                variant={localInvoice.isPaid ? "outline" : "default"}
                 className={cn(
-                  invoice.isPaid ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+                  localInvoice.isPaid ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
                 )}
               >
-                {invoice.isPaid ? "Paid" : "Unpaid"}
+                {localInvoice.isPaid ? "Paid" : "Unpaid"}
               </Badge>
             </DialogTitle>
             <DialogDescription>
-              {invoice.utilityType === "water" ? "Water" : "Electricity"} invoice for {invoice.address}
+              {localInvoice.utilityType === "water" ? "Water" : "Electricity"} invoice for {localInvoice.address}
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="text-sm font-medium">Customer Number:</div>
-            <div className="text-sm">{invoice.customerNumber}</div>
+            <div className="text-sm">{localInvoice.customerNumber}</div>
             
             <div className="text-sm font-medium">Invoice Number:</div>
-            <div className="text-sm">{invoice.invoiceNumber}</div>
+            <div className="text-sm">{localInvoice.invoiceNumber}</div>
             
             <div className="text-sm font-medium">Invoice Date:</div>
-            <div className="text-sm">{invoice.invoiceDate}</div>
+            <div className="text-sm">{localInvoice.invoiceDate}</div>
             
             <div className="text-sm font-medium">Due Date:</div>
-            <div className="text-sm">{invoice.dueDate}</div>
+            <div className="text-sm">{localInvoice.dueDate}</div>
             
             <div className="text-sm font-medium">Amount Due:</div>
             <div className={cn(
               "text-sm font-bold",
-              invoice.isPaid ? "line-through opacity-70" : ""
+              localInvoice.isPaid ? "line-through opacity-70" : ""
             )}>
               {formattedAmount}
             </div>
 
-            {invoice.isPaid && invoice.paymentDate && (
+            {localInvoice.isPaid && localInvoice.paymentDate && (
               <>
                 <div className="text-sm font-medium">Payment Date:</div>
-                <div className="text-sm">{new Date(invoice.paymentDate).toLocaleDateString()}</div>
+                <div className="text-sm">{new Date(localInvoice.paymentDate).toLocaleDateString()}</div>
               </>
             )}
           </div>
@@ -134,7 +170,7 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
             </Button>
           </div>
           
-          <DialogFooter className="sm:justify-between">
+          <DialogFooter className="sm:justify-between mt-6">
             <Button
               variant="destructive"
               onClick={() => setShowDeleteAlert(true)}
@@ -142,23 +178,29 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
               <Trash2 className="mr-2 h-4 w-4" />
               Delete Invoice
             </Button>
-            <Button
-              onClick={handlePaidClick}
-              variant={invoice.isPaid ? "outline" : "default"}
-              className={invoice.isPaid ? "bg-gray-100" : ""}
-            >
-              {invoice.isPaid ? (
-                <>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Mark as Unpaid
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Mark as Paid
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={handlePaidClick}
+                variant={localInvoice.isPaid ? "outline" : "default"}
+                className={localInvoice.isPaid ? "bg-gray-100" : ""}
+              >
+                {localInvoice.isPaid ? (
+                  <>
+                    <XCircle className="mr-2 h-4 w-4" />
+                    Mark as Unpaid
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Mark as Paid
+                  </>
+                )}
+              </Button>
+              <Button onClick={handleSaveAndClose} variant="secondary">
+                <Save className="mr-2 h-4 w-4" />
+                Save & Close
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -175,7 +217,7 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                onDelete(invoice);
+                onDelete(localInvoice);
                 setShowDeleteAlert(false);
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
