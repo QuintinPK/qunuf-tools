@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Invoice } from '@/types/invoice';
@@ -13,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InvoiceDetailsDialog from './InvoiceDetailsDialog';
 import InvoiceStats from './InvoiceStats';
 import UnpaidTotal from './UnpaidTotal';
+import PercentageDifference from './PercentageDifference';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -203,6 +203,7 @@ const Dashboard = () => {
                             <TableHead>Type</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead>Amount</TableHead>
+                            <TableHead>vs. Average</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                           </TableRow>
@@ -219,6 +220,12 @@ const Dashboard = () => {
                               </TableCell>
                               <TableCell>{invoice.invoiceDate}</TableCell>
                               <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                              <TableCell>
+                                <PercentageDifference 
+                                  currentInvoice={invoice} 
+                                  allInvoices={invoices} 
+                                />
+                              </TableCell>
                               <TableCell>
                                 <span className={invoice.isPaid ? 'text-green-600' : 'text-amber-600'}>
                                   {invoice.isPaid ? 'Paid' : 'Unpaid'}
