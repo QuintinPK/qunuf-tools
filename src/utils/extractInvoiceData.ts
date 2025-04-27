@@ -2,9 +2,15 @@
 import { Invoice, UtilityType } from "../types/invoice";
 import * as pdfjs from 'pdfjs-dist';
 
-// Set the PDF.js worker source
-const pdfjsWorker = await import('pdfjs-dist/build/pdf.worker.entry');
-pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorker;
+// Initialize PDF.js worker without using top-level await
+// This creates a function to initialize the worker when needed
+const initializeWorker = () => {
+  const workerSrc = require('pdfjs-dist/build/pdf.worker.entry');
+  pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+};
+
+// Initialize the worker right away
+initializeWorker();
 
 export const extractInvoiceData = async (file: File): Promise<Invoice> => {
   // Extract customer number from filename (without .pdf extension)
