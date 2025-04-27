@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Invoice } from '@/types/invoice';
@@ -132,7 +131,7 @@ const Dashboard = () => {
 
           <TabsContent value="invoices" className="mt-6">
             <div className="space-y-6">
-              <UnpaidTotal invoices={invoices} />
+              <UnpaidTotal invoices={invoices} filters={filters} />
 
               <div>
                 <div className="flex justify-between items-center mb-4">
