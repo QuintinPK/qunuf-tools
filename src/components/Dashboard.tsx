@@ -1,185 +1,43 @@
-import React, { useState, useEffect } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import FileUploader from './FileUploader';
-import InvoiceCard from './InvoiceCard';
-import InvoiceDetailsDialog from './InvoiceDetailsDialog';
-import InvoiceFilter from './InvoiceFilter';
-import { Invoice, FilterOptions } from '@/types/invoice';
-import { useToast } from '@/hooks/use-toast';
 
-const Dashboard: React.FC = () => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterOptions>({
-    utilityType: 'all',
-    paymentStatus: 'all',
-  });
+import React, { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { Invoice } from '@/types/invoice';
+import InvoiceUploader from './InvoiceUploader';
+import { saveInvoice } from '@/services/invoiceService';
+
+const Dashboard = () => {
   const { toast } = useToast();
-  
-  useEffect(() => {
-    let filtered = [...invoices];
-    
-    if (filters.address) {
-      filtered = filtered.filter(inv => 
-        inv.address.toLowerCase().includes(filters.address!.toLowerCase())
-      );
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+
+  const handleInvoiceProcessed = async (invoice: Invoice) => {
+    try {
+      const savedInvoice = await saveInvoice(invoice);
+      setInvoices(prev => [savedInvoice, ...prev]);
+      
+      toast({
+        title: "Invoice saved",
+        description: `Invoice ${invoice.invoiceNumber} has been saved successfully`,
+      });
+    } catch (error) {
+      console.error("Error saving invoice:", error);
+      toast({
+        title: "Error saving invoice",
+        description: "There was an error saving the invoice to the database",
+        variant: "destructive"
+      });
     }
-    
-    if (filters.utilityType && filters.utilityType !== 'all') {
-      filtered = filtered.filter(inv => inv.utilityType === filters.utilityType);
-    }
-    
-    if (filters.paymentStatus && filters.paymentStatus !== 'all') {
-      filtered = filtered.filter(inv => 
-        (filters.paymentStatus === 'paid' ? inv.isPaid : !inv.isPaid)
-      );
-    }
-    
-    setFilteredInvoices(filtered);
-  }, [invoices, filters]);
-  
-  const handleFileProcessed = (invoice: Invoice) => {
-    setInvoices(prev => [invoice, ...prev]);
   };
-  
-  const handleViewDetails = (invoice: Invoice) => {
-    setSelectedInvoice(invoice);
-    setIsDetailsOpen(true);
-  };
-  
-  const handleTogglePaid = (invoice: Invoice) => {
-    setInvoices(prev => prev.map(inv => 
-      inv.id === invoice.id ? { ...inv, isPaid: !inv.isPaid } : inv
-    ));
-    
-    if (selectedInvoice && selectedInvoice.id === invoice.id) {
-      setSelectedInvoice({ ...selectedInvoice, isPaid: !selectedInvoice.isPaid });
-    }
-    
-    toast({
-      title: invoice.isPaid ? "Marked as Unpaid" : "Marked as Paid",
-      description: `Invoice #${invoice.invoiceNumber} for ${invoice.address}`,
-    });
-  };
-  
-  const handleDeleteInvoice = (invoice: Invoice) => {
-    setInvoices(prev => prev.filter(inv => inv.id !== invoice.id));
-    
-    if (selectedInvoice?.id === invoice.id) {
-      setSelectedInvoice(null);
-      setIsDetailsOpen(false);
-    }
-    
-    toast({
-      title: "Invoice Deleted",
-      description: `Invoice #${invoice.invoiceNumber} for ${invoice.address} has been deleted`,
-    });
-  };
-  
-  const waterInvoices = filteredInvoices.filter(inv => inv.utilityType === 'water');
-  const electricityInvoices = filteredInvoices.filter(inv => inv.utilityType === 'electricity');
-  
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Utility Bill Manager</h1>
-        <p className="text-muted-foreground">
-          Upload and manage your water and electricity invoices
-        </p>
+    <div className="container mx-auto p-4 max-w-5xl">
+      <h1 className="text-2xl font-bold mb-8">Invoice Processing Dashboard</h1>
+      
+      <div className="grid gap-8">
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Upload New Invoice</h2>
+          <InvoiceUploader onInvoiceProcessed={handleInvoiceProcessed} />
+        </div>
       </div>
-      
-      <Separator />
-      
-      <FileUploader onFileProcessed={handleFileProcessed} />
-      
-      <Separator />
-      
-      <InvoiceFilter filters={filters} onFilterChange={setFilters} />
-      
-      <Tabs defaultValue="all" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="all">All Invoices ({filteredInvoices.length})</TabsTrigger>
-          <TabsTrigger value="water">Water ({waterInvoices.length})</TabsTrigger>
-          <TabsTrigger value="electricity">Electricity ({electricityInvoices.length})</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="space-y-4">
-          {filteredInvoices.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">
-              No invoices found. Upload your first invoice to get started.
-            </p>
-          ) : (
-            <ScrollArea className="h-[500px] pr-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredInvoices.map(invoice => (
-                  <InvoiceCard
-                    key={invoice.id}
-                    invoice={invoice}
-                    onViewDetails={handleViewDetails}
-                    onTogglePaid={handleTogglePaid}
-                    onDelete={handleDeleteInvoice}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="water" className="space-y-4">
-          {waterInvoices.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">
-              No water invoices found with the current filters.
-            </p>
-          ) : (
-            <ScrollArea className="h-[500px] pr-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {waterInvoices.map(invoice => (
-                  <InvoiceCard
-                    key={invoice.id}
-                    invoice={invoice}
-                    onViewDetails={handleViewDetails}
-                    onTogglePaid={handleTogglePaid}
-                    onDelete={handleDeleteInvoice}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="electricity" className="space-y-4">
-          {electricityInvoices.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">
-              No electricity invoices found with the current filters.
-            </p>
-          ) : (
-            <ScrollArea className="h-[500px] pr-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {electricityInvoices.map(invoice => (
-                  <InvoiceCard
-                    key={invoice.id}
-                    invoice={invoice}
-                    onViewDetails={handleViewDetails}
-                    onTogglePaid={handleTogglePaid}
-                    onDelete={handleDeleteInvoice}
-                  />
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-        </TabsContent>
-      </Tabs>
-      
-      <InvoiceDetailsDialog
-        invoice={selectedInvoice}
-        open={isDetailsOpen}
-        onOpenChange={setIsDetailsOpen}
-        onTogglePaid={handleTogglePaid}
-      />
     </div>
   );
 };
