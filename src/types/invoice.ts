@@ -10,6 +10,7 @@ export interface Invoice {
   dueDate: string;
   amount: number;
   isPaid: boolean;
+  paymentDate?: string;
   utilityType: UtilityType;
   fileName: string;
   pdfBlob?: Blob;

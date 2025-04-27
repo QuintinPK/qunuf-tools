@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Invoice, UtilityType } from "@/types/invoice";
 
@@ -69,6 +68,7 @@ export const updateInvoice = async (invoice: Invoice): Promise<Invoice> => {
       due_date: invoice.dueDate,
       amount: invoice.amount,
       is_paid: invoice.isPaid,
+      payment_date: invoice.paymentDate,
       utility_type: invoice.utilityType,
       file_name: invoice.fileName
     })

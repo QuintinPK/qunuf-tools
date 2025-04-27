@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Download, CheckCircle2, XCircle } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
+import { Download, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
 import { Invoice } from '@/types/invoice';
 import { cn } from '@/lib/utils';
 
@@ -12,7 +14,8 @@ interface InvoiceDetailsDialogProps {
   invoice: Invoice | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onTogglePaid: (invoice: Invoice) => void;
+  onTogglePaid: (invoice: Invoice, paymentDate?: Date) => void;
+  onDelete: (invoice: Invoice) => void;
 }
 
 const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
@@ -20,7 +23,12 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
   open,
   onOpenChange,
   onTogglePaid,
+  onDelete,
 }) => {
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>();
+
   if (!invoice) return null;
 
   const formattedAmount = new Intl.NumberFormat('en-US', {
@@ -48,81 +56,156 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
     }
   };
 
+  const handlePaidClick = () => {
+    if (!invoice.isPaid) {
+      setShowCalendar(true);
+    } else {
+      onTogglePaid(invoice);
+    }
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      onTogglePaid(invoice, date);
+      setShowCalendar(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex justify-between items-center">
-            <span>Invoice Details</span>
-            <Badge
-              variant={invoice.isPaid ? "outline" : "default"}
-              className={cn(
-                invoice.isPaid ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
-              )}
-            >
-              {invoice.isPaid ? "Paid" : "Unpaid"}
-            </Badge>
-          </DialogTitle>
-          <DialogDescription>
-            {invoice.utilityType === "water" ? "Water" : "Electricity"} invoice for {invoice.address}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="grid grid-cols-2 gap-4">
-          <div className="text-sm font-medium">Customer Number:</div>
-          <div className="text-sm">{invoice.customerNumber}</div>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex justify-between items-center">
+              <span>Invoice Details</span>
+              <Badge
+                variant={invoice.isPaid ? "outline" : "default"}
+                className={cn(
+                  invoice.isPaid ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+                )}
+              >
+                {invoice.isPaid ? "Paid" : "Unpaid"}
+              </Badge>
+            </DialogTitle>
+            <DialogDescription>
+              {invoice.utilityType === "water" ? "Water" : "Electricity"} invoice for {invoice.address}
+            </DialogDescription>
+          </DialogHeader>
           
-          <div className="text-sm font-medium">Invoice Number:</div>
-          <div className="text-sm">{invoice.invoiceNumber}</div>
-          
-          <div className="text-sm font-medium">Invoice Date:</div>
-          <div className="text-sm">{invoice.invoiceDate}</div>
-          
-          <div className="text-sm font-medium">Due Date:</div>
-          <div className="text-sm">{invoice.dueDate}</div>
-          
-          <div className="text-sm font-medium">Amount Due:</div>
-          <div className={cn(
-            "text-sm font-bold",
-            invoice.isPaid ? "line-through opacity-70" : ""
-          )}>
-            {formattedAmount}
-          </div>
-        </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="text-sm font-medium">Customer Number:</div>
+            <div className="text-sm">{invoice.customerNumber}</div>
+            
+            <div className="text-sm font-medium">Invoice Number:</div>
+            <div className="text-sm">{invoice.invoiceNumber}</div>
+            
+            <div className="text-sm font-medium">Invoice Date:</div>
+            <div className="text-sm">{invoice.invoiceDate}</div>
+            
+            <div className="text-sm font-medium">Due Date:</div>
+            <div className="text-sm">{invoice.dueDate}</div>
+            
+            <div className="text-sm font-medium">Amount Due:</div>
+            <div className={cn(
+              "text-sm font-bold",
+              invoice.isPaid ? "line-through opacity-70" : ""
+            )}>
+              {formattedAmount}
+            </div>
 
-        <Separator />
-
-        <div className="flex justify-between">
-          <Button variant="outline" onClick={handleViewOriginal}>
-            View Original PDF
-          </Button>
-          <Button variant="outline" onClick={handleDownload}>
-            <Download className="mr-2 h-4 w-4" />
-            Download
-          </Button>
-        </div>
-        
-        <DialogFooter className="sm:justify-start">
-          <Button
-            onClick={() => invoice && onTogglePaid(invoice)}
-            variant={invoice.isPaid ? "outline" : "default"}
-            className={invoice.isPaid ? "bg-gray-100" : ""}
-          >
-            {invoice.isPaid ? (
+            {invoice.isPaid && invoice.paymentDate && (
               <>
-                <XCircle className="mr-2 h-4 w-4" />
-                Mark as Unpaid
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Mark as Paid
+                <div className="text-sm font-medium">Payment Date:</div>
+                <div className="text-sm">{new Date(invoice.paymentDate).toLocaleDateString()}</div>
               </>
             )}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </div>
+
+          <Separator />
+
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={handleViewOriginal}>
+              View Original PDF
+            </Button>
+            <Button variant="outline" onClick={handleDownload}>
+              <Download className="mr-2 h-4 w-4" />
+              Download
+            </Button>
+          </div>
+          
+          <DialogFooter className="sm:justify-between">
+            <Button
+              variant="destructive"
+              onClick={() => setShowDeleteAlert(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Invoice
+            </Button>
+            <Button
+              onClick={handlePaidClick}
+              variant={invoice.isPaid ? "outline" : "default"}
+              className={invoice.isPaid ? "bg-gray-100" : ""}
+            >
+              {invoice.isPaid ? (
+                <>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Mark as Unpaid
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Mark as Paid
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this invoice?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the invoice and remove it from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete(invoice);
+                setShowDeleteAlert(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Invoice
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={showCalendar} onOpenChange={setShowCalendar}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Select Payment Date</DialogTitle>
+            <DialogDescription>
+              Choose the date when the payment was made
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-center py-4">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              disabled={(date) => date > new Date()}
+              initialFocus
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

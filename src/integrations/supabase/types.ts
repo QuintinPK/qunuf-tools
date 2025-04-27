@@ -22,6 +22,7 @@ export type Database = {
           invoice_date: string
           invoice_number: string
           is_paid: boolean | null
+          payment_date: string | null
           updated_at: string | null
           utility_type: string | null
         }
@@ -37,6 +38,7 @@ export type Database = {
           invoice_date: string
           invoice_number: string
           is_paid?: boolean | null
+          payment_date?: string | null
           updated_at?: string | null
           utility_type?: string | null
         }
@@ -52,6 +54,7 @@ export type Database = {
           invoice_date?: string
           invoice_number?: string
           is_paid?: boolean | null
+          payment_date?: string | null
           updated_at?: string | null
           utility_type?: string | null
         }

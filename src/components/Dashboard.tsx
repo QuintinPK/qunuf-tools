@@ -11,6 +11,8 @@ import InvoiceFilter from './InvoiceFilter';
 import { FilterOptions } from '@/types/invoice';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import InvoiceDetailsDialog from './InvoiceDetailsDialog';
+import InvoiceStats from './InvoiceStats';
+import UnpaidTotal from './UnpaidTotal';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -122,86 +124,103 @@ const Dashboard = () => {
           <InvoiceUploader onInvoiceProcessed={handleInvoiceProcessed} />
         </div>
 
-        <div className="mt-12">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Your Invoices</h2>
-            <Tabs value={viewType} onValueChange={(value) => setViewType(value as 'list' | 'grid')} className="w-[200px]">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="list">List</TabsTrigger>
-                <TabsTrigger value="grid">Grid</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-          
-          <InvoiceFilter filters={filters} onFilterChange={handleFilterChange} />
-          
-          {loading ? (
-            <div className="text-center py-8">Loading invoices...</div>
-          ) : filteredInvoices.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No invoices found. Upload your first invoice to get started.
-            </div>
-          ) : (
-            <>
-              {viewType === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-                  {filteredInvoices.map(invoice => (
-                    <InvoiceCard 
-                      key={invoice.id}
-                      invoice={invoice}
-                      onViewDetails={handleViewDetails}
-                      onTogglePaid={handleTogglePaid}
-                      onDelete={handleDeleteInvoice}
-                    />
-                  ))}
+        <Tabs defaultValue="invoices" className="mt-12">
+          <TabsList className="grid w-[400px] grid-cols-2">
+            <TabsTrigger value="invoices">Invoices</TabsTrigger>
+            <TabsTrigger value="stats">Statistics</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="invoices" className="mt-6">
+            <div className="space-y-6">
+              <UnpaidTotal invoices={invoices} />
+
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold">Your Invoices</h2>
+                  <Tabs value={viewType} onValueChange={(value) => setViewType(value as 'list' | 'grid')} className="w-[200px]">
+                    <TabsList className="grid w-full grid-cols-2">
+                      <TabsTrigger value="list">List</TabsTrigger>
+                      <TabsTrigger value="grid">Grid</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                 </div>
-              ) : (
-                <Table className="mt-6">
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Invoice #</TableHead>
-                      <TableHead>Address</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredInvoices.map(invoice => (
-                      <TableRow key={invoice.id}>
-                        <TableCell>{invoice.invoiceNumber}</TableCell>
-                        <TableCell>{invoice.address}</TableCell>
-                        <TableCell>
-                          <span className={invoice.utilityType === 'water' ? 'text-water' : 'text-electricity'}>
-                            {invoice.utilityType === 'water' ? 'Water' : 'Electricity'}
-                          </span>
-                        </TableCell>
-                        <TableCell>{invoice.invoiceDate}</TableCell>
-                        <TableCell>${invoice.amount.toFixed(2)}</TableCell>
-                        <TableCell>
-                          <span className={invoice.isPaid ? 'text-green-600' : 'text-amber-600'}>
-                            {invoice.isPaid ? 'Paid' : 'Unpaid'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleViewDetails(invoice)}
-                          >
-                            View
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </>
-          )}
-        </div>
+                
+                <InvoiceFilter filters={filters} onFilterChange={handleFilterChange} />
+                
+                {loading ? (
+                  <div className="text-center py-8">Loading invoices...</div>
+                ) : filteredInvoices.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No invoices found. Upload your first invoice to get started.
+                  </div>
+                ) : (
+                  <>
+                    {viewType === 'grid' ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                        {filteredInvoices.map(invoice => (
+                          <InvoiceCard 
+                            key={invoice.id}
+                            invoice={invoice}
+                            onViewDetails={handleViewDetails}
+                            onTogglePaid={handleTogglePaid}
+                            onDelete={handleDeleteInvoice}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <Table className="mt-6">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Invoice #</TableHead>
+                            <TableHead>Address</TableHead>
+                            <TableHead>Type</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredInvoices.map(invoice => (
+                            <TableRow key={invoice.id}>
+                              <TableCell>{invoice.invoiceNumber}</TableCell>
+                              <TableCell>{invoice.address}</TableCell>
+                              <TableCell>
+                                <span className={invoice.utilityType === 'water' ? 'text-water' : 'text-electricity'}>
+                                  {invoice.utilityType === 'water' ? 'Water' : 'Electricity'}
+                                </span>
+                              </TableCell>
+                              <TableCell>{invoice.invoiceDate}</TableCell>
+                              <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                              <TableCell>
+                                <span className={invoice.isPaid ? 'text-green-600' : 'text-amber-600'}>
+                                  {invoice.isPaid ? 'Paid' : 'Unpaid'}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Button 
+                                  variant="ghost"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => handleViewDetails(invoice)}
+                                >
+                                  View
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="stats" className="mt-6">
+            <InvoiceStats invoices={invoices} />
+          </TabsContent>
+        </Tabs>
       </div>
 
       <InvoiceDetailsDialog 
@@ -209,6 +228,7 @@ const Dashboard = () => {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onTogglePaid={handleTogglePaid}
+        onDelete={handleDeleteInvoice}
       />
     </div>
   );
