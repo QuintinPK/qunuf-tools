@@ -1,4 +1,3 @@
-
 import { Invoice, UtilityType } from "../types/invoice";
 import * as pdfjs from 'pdfjs-dist';
 import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.js';
@@ -12,19 +11,70 @@ const initializeWorker = () => {
 // Initialize the worker right away
 initializeWorker();
 
+// Helper function to find the best match for an address in the text
+const findAddress = (text: string): string => {
+  // Common address patterns in invoices
+  const patterns = [
+    /ADRES[:\s]+([^\n]+)/i,
+    /LEVERINGSADRES[:\s]+([^\n]+)/i,
+    /FACTUUR ADRES[:\s]+([^\n]+)/i,
+    /ADRESS?E?[:\s]+([^\n]+)/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match && match[1]?.trim()) {
+      return match[1].trim();
+    }
+  }
+
+  // If no pattern matches, try to find a line that looks like an address
+  const lines = text.split('\n');
+  const addressLine = lines.find(line => 
+    /\d+.*(?:street|straat|lane|weg|laan)/i.test(line) ||
+    /(?:street|straat|lane|weg|laan).*\d+/i.test(line)
+  );
+
+  return addressLine?.trim() || "Address not found";
+};
+
+// Helper function to find invoice number
+const findInvoiceNumber = (text: string): string => {
+  const patterns = [
+    /Factuurnummer[:\s]+([^\n]+)/i,
+    /FACTUUR(?:\s+)?NR?(?:\.|:|\s)+([^\n]+)/i,
+    /Invoice\s+number[:\s]+([^\n]+)/i,
+    /FACTUUR\s+([A-Z0-9-]+)/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match && match[1]?.trim()) {
+      return match[1].trim();
+    }
+  }
+
+  return `INV-${Math.random().toString(36).substring(7)}`;
+};
+
+// Helper function to parse dates
+const parseDate = (dateStr: string): string => {
+  try {
+    const [day, month, year] = dateStr.split(/[\/.-]/).map(num => num.trim());
+    return `${month}/${day}/${year}`; // Convert to MM/DD/YYYY format
+  } catch (error) {
+    console.error("Error parsing date:", dateStr);
+    return new Date().toISOString().split('T')[0];
+  }
+};
+
 export const extractInvoiceData = async (file: File): Promise<Invoice> => {
-  // Extract customer number from filename (without .pdf extension)
-  const fileName = file.name;
-  const customerNumberFromFileName = fileName.replace(/\.pdf$/i, "");
+  const customerNumberFromFileName = file.name.replace(/\.pdf$/i, "");
   
   try {
-    // Convert file to ArrayBuffer for PDF.js
     const arrayBuffer = await file.arrayBuffer();
-    
-    // Load the PDF document
     const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
     
-    // Extract text content from all pages
     let fullText = '';
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
@@ -37,33 +87,30 @@ export const extractInvoiceData = async (file: File): Promise<Invoice> => {
     
     console.log("Extracted PDF text:", fullText);
     
-    // Parse address (after "ADRES")
-    const addressMatch = fullText.match(/ADRES[:\s]+([^\n]+)/i);
-    const address = addressMatch ? addressMatch[1].trim() : "Unknown Address";
+    // Find address using our smart address detection
+    const address = findAddress(fullText);
     
-    // Parse invoice number (after "Factuurnummer:")
-    const invoiceNumberMatch = fullText.match(/Factuurnummer:[:\s]+([^\n]+)/i);
-    const invoiceNumber = invoiceNumberMatch 
-      ? invoiceNumberMatch[1].trim() 
-      : `INV-${Math.random().toString(36).substring(7)}`;
+    // Find invoice number using multiple patterns
+    const invoiceNumber = findInvoiceNumber(fullText);
     
-    // Parse due date (after "Verval Datum")
-    const dueDateMatch = fullText.match(/Verval Datum[:\s]+(\d{2})\/(\d{2})\/(\d{4})/i);
+    // Parse dates with better pattern matching
+    const dueDateMatch = fullText.match(/Verval Datum[:\s]+(\d{2})[\/-](\d{2})[\/-](\d{4})/i) ||
+                        fullText.match(/Due Date[:\s]+(\d{2})[\/-](\d{2})[\/-](\d{4})/i);
     const dueDate = dueDateMatch 
-      ? `${dueDateMatch[2]}/${dueDateMatch[1]}/${dueDateMatch[3]}` // Convert to DD/MM/YYYY
+      ? parseDate(`${dueDateMatch[1]}/${dueDateMatch[2]}/${dueDateMatch[3]}`)
       : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     
-    // Parse invoice date (after "FACTUUR DATUM")
-    const invoiceDateMatch = fullText.match(/FACTUUR DATUM[:\s]+(\d{2})\/(\d{2})\/(\d{4})/i);
+    const invoiceDateMatch = fullText.match(/FACTUUR DATUM[:\s]+(\d{2})[\/-](\d{2})[\/-](\d{4})/i) ||
+                            fullText.match(/Invoice Date[:\s]+(\d{2})[\/-](\d{2})[\/-](\d{4})/i);
     const invoiceDate = invoiceDateMatch 
-      ? `${invoiceDateMatch[2]}/${invoiceDateMatch[1]}/${invoiceDateMatch[3]}` // Convert to DD/MM/YYYY
+      ? parseDate(`${invoiceDateMatch[1]}/${invoiceDateMatch[2]}/${invoiceDateMatch[3]}`)
       : new Date().toISOString().split('T')[0];
     
-    // Parse amount (after "TE BETALEN")
-    const amountMatch = fullText.match(/TE BETALEN[:\s]+(\d+\.?\d*)/i);
-    const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
+    // Parse amount with better pattern matching
+    const amountMatch = fullText.match(/TE BETALEN[:\s]+(\d+[.,]?\d*)/i) ||
+                       fullText.match(/TOTAL[:\s]+(\d+[.,]?\d*)/i);
+    const amount = amountMatch ? parseFloat(amountMatch[1].replace(',', '.')) : 0;
     
-    // Detect utility type based on content
     const utilityType: UtilityType = detectUtilityType(fullText);
     
     const invoice: Invoice = {
