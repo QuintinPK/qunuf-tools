@@ -1,12 +1,11 @@
 
 import { Invoice, UtilityType } from "../types/invoice";
 import * as pdfjs from 'pdfjs-dist';
+import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.js';
 
-// Initialize PDF.js worker without using top-level await
-// This creates a function to initialize the worker when needed
+// Initialize PDF.js worker with ES modules compatible syntax
 const initializeWorker = () => {
-  const workerSrc = require('pdfjs-dist/build/pdf.worker.entry');
-  pdfjs.GlobalWorkerOptions.workerSrc = workerSrc;
+  pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc;
 };
 
 // Initialize the worker right away
