@@ -1,3 +1,4 @@
+
 import { Invoice, UtilityType } from "../types/invoice";
 import * as pdfjs from 'pdfjs-dist';
 import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.js';
@@ -123,7 +124,7 @@ export const extractInvoiceData = async (file: File): Promise<Invoice> => {
       amount,
       isPaid: false,
       utilityType,
-      fileName,
+      fileName: file.name, // Fixed: use file.name instead of undefined fileName
       pdfBlob: file
     };
 
