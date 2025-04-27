@@ -1,7 +1,7 @@
-
 import * as pdfjs from 'pdfjs-dist';
 import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.js';
 import { Invoice, UtilityType } from "../types/invoice";
+import { getAddressFromCustomerNumber } from './addressMapping';
 
 // Initialize PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerSrc;
@@ -83,6 +83,13 @@ export const extractCustomerNumber = (fileName: string, text: string): string =>
  * AI-enhanced invoice number extraction
  */
 export const extractInvoiceNumber = (text: string): string => {
+  // Look for invoice number before INCASSOADRES
+  const invoiceMatch = text.match(/([A-Z0-9-]+)\s*INCASSOADRES/i);
+  if (invoiceMatch && invoiceMatch[1]) {
+    return invoiceMatch[1].trim();
+  }
+
+  // If not found, try other patterns as fallback
   const patterns = [
     /Factuurnummer[:\s]+([^\n]+)/i,
     /FACTUUR(?:\s+)?NR?(?:\.|:|\s)+([^\n]+)/i,
@@ -122,7 +129,14 @@ export const extractInvoiceNumber = (text: string): string => {
 /**
  * AI-enhanced address extraction with multiple detection strategies
  */
-export const extractAddress = (text: string): string => {
+export const extractAddress = (text: string, customerNumber: string): string => {
+  // First try to get address from customer number mapping
+  const mapping = getAddressFromCustomerNumber(customerNumber);
+  if (mapping) {
+    return mapping.address;
+  }
+
+  // If no mapping found, fall back to text extraction
   // Common labeled address patterns
   const labeledPatterns = [
     /ADRES[:\s]+([^\n]+\s[^\n]+)/i,
@@ -174,6 +188,14 @@ export const extractAddress = (text: string): string => {
  * AI-enhanced date extraction with improved format detection
  */
 export const extractInvoiceDate = (text: string): string => {
+  // Look for date after WIJK-LOOPROUTE
+  const dateMatch = text.match(/WIJK-LOOPROUTE\s*(\d{1,2}[\/-]\d{1,2}[\/-]\d{4})/i);
+  if (dateMatch && dateMatch[1]) {
+    const [day, month, year] = dateMatch[1].split(/[\/.-]/).map(num => num.trim());
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  // If not found, try other patterns as fallback
   // Match common date patterns (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD)
   const datePatterns = [
     // Try to find dates with labels first
@@ -312,32 +334,14 @@ export const extractAmount = (text: string): number => {
  * AI-enhanced utility type detection
  */
 export const detectUtilityType = (text: string): UtilityType => {
-  // Look for water-related keywords
-  const waterKeywords = ['water', 'm3', 'cubic meter', 'tap water', 'drinking water', 'water utility', 'water bill', 'water supply'];
-  
-  // Look for electricity-related keywords
-  const electricityKeywords = ['electricity', 'kwh', 'kilowatt', 'power', 'electric', 'energy', 'electric bill', 'power supply'];
-  
-  // Convert text to lowercase for case-insensitive matching
   const lowerText = text.toLowerCase();
-  
-  // Count occurrences of water keywords
-  const waterCount = waterKeywords.reduce((count, keyword) => {
-    return count + (lowerText.includes(keyword.toLowerCase()) ? 1 : 0);
-  }, 0);
-  
-  // Count occurrences of electricity keywords
-  const electricityCount = electricityKeywords.reduce((count, keyword) => {
-    return count + (lowerText.includes(keyword.toLowerCase()) ? 1 : 0);
-  }, 0);
-  
-  // Choose the type with more keyword matches
-  if (electricityCount > waterCount) {
+  if (lowerText.includes('m3') || lowerText.includes('water')) {
+    return "water";
+  }
+  if (lowerText.includes('kwh') || lowerText.includes('electricity')) {
     return "electricity";
   }
-  
-  // Default to water if undetermined or tied
-  return "water";
+  return "water"; // Default fallback
 };
 
 /**
@@ -346,15 +350,17 @@ export const detectUtilityType = (text: string): UtilityType => {
 export const parsePDFInvoice = async (file: File): Promise<Partial<Invoice>> => {
   try {
     const text = await extractTextFromPDF(file);
+    const customerNumber = extractCustomerNumber(file.name, text);
+    const mapping = getAddressFromCustomerNumber(customerNumber);
     
     return {
-      customerNumber: extractCustomerNumber(file.name, text),
+      customerNumber,
       invoiceNumber: extractInvoiceNumber(text),
-      address: extractAddress(text),
+      address: mapping?.address || extractAddress(text, customerNumber),
       invoiceDate: extractInvoiceDate(text),
       dueDate: extractDueDate(text),
       amount: extractAmount(text),
-      utilityType: detectUtilityType(text),
+      utilityType: mapping?.utilityType || detectUtilityType(text),
       fileName: file.name,
       pdfBlob: file
     };
