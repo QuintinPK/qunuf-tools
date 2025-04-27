@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Check, Download, Eye } from 'lucide-react';
+import { Check, Download, Eye, Trash2 } from 'lucide-react';
 import { Invoice, UtilityType } from '@/types/invoice';
 import { cn } from '@/lib/utils';
 
@@ -11,6 +10,7 @@ interface InvoiceCardProps {
   invoice: Invoice;
   onViewDetails: (invoice: Invoice) => void;
   onTogglePaid: (invoice: Invoice) => void;
+  onDelete: (invoice: Invoice) => void;
 }
 
 const UtilityIcon: React.FC<{ type: UtilityType }> = ({ type }) => {
@@ -34,7 +34,12 @@ const UtilityIcon: React.FC<{ type: UtilityType }> = ({ type }) => {
   }
 };
 
-const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onViewDetails, onTogglePaid }) => {
+const InvoiceCard: React.FC<InvoiceCardProps> = ({ 
+  invoice, 
+  onViewDetails, 
+  onTogglePaid,
+  onDelete 
+}) => {
   const { utilityType, address, invoiceNumber, invoiceDate, amount, isPaid } = invoice;
   
   const formattedAmount = new Intl.NumberFormat('en-US', {
@@ -42,6 +47,13 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onViewDetails, onTog
     currency: 'USD',
   }).format(amount);
   
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this invoice?')) {
+      onDelete(invoice);
+    }
+  };
+
   return (
     <Card className={cn(
       "transition-all hover:shadow-md",
@@ -88,6 +100,15 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onViewDetails, onTog
         >
           {isPaid ? "Mark Unpaid" : "Mark Paid"}
           {isPaid && <Check className="h-3 w-3 ml-1" />}
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-xs text-destructive hover:text-destructive-foreground hover:bg-destructive"
+          onClick={handleDelete}
+        >
+          <Trash2 className="h-3 w-3 mr-1" />
+          Delete
         </Button>
         <Button 
           size="sm"

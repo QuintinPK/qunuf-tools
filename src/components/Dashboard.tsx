@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
@@ -21,7 +20,6 @@ const Dashboard: React.FC = () => {
   });
   const { toast } = useToast();
   
-  // Apply filters whenever filters or invoices change
   useEffect(() => {
     let filtered = [...invoices];
     
@@ -68,6 +66,20 @@ const Dashboard: React.FC = () => {
     });
   };
   
+  const handleDeleteInvoice = (invoice: Invoice) => {
+    setInvoices(prev => prev.filter(inv => inv.id !== invoice.id));
+    
+    if (selectedInvoice?.id === invoice.id) {
+      setSelectedInvoice(null);
+      setIsDetailsOpen(false);
+    }
+    
+    toast({
+      title: "Invoice Deleted",
+      description: `Invoice #${invoice.invoiceNumber} for ${invoice.address} has been deleted`,
+    });
+  };
+  
   const waterInvoices = filteredInvoices.filter(inv => inv.utilityType === 'water');
   const electricityInvoices = filteredInvoices.filter(inv => inv.utilityType === 'electricity');
   
@@ -109,6 +121,7 @@ const Dashboard: React.FC = () => {
                     invoice={invoice}
                     onViewDetails={handleViewDetails}
                     onTogglePaid={handleTogglePaid}
+                    onDelete={handleDeleteInvoice}
                   />
                 ))}
               </div>
@@ -130,6 +143,7 @@ const Dashboard: React.FC = () => {
                     invoice={invoice}
                     onViewDetails={handleViewDetails}
                     onTogglePaid={handleTogglePaid}
+                    onDelete={handleDeleteInvoice}
                   />
                 ))}
               </div>
@@ -151,6 +165,7 @@ const Dashboard: React.FC = () => {
                     invoice={invoice}
                     onViewDetails={handleViewDetails}
                     onTogglePaid={handleTogglePaid}
+                    onDelete={handleDeleteInvoice}
                   />
                 ))}
               </div>

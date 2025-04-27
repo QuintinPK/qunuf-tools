@@ -1,54 +1,54 @@
 
 import { Invoice, UtilityType } from "../types/invoice";
 
-// This is a mock implementation that simulates extracting data from a PDF
-// In a real application, you would need to use a PDF parsing library
 export const extractInvoiceData = async (file: File): Promise<Invoice> => {
-  // Generate a temporary URL for the file to simulate viewing it
+  // Generate a temporary URL for the file
   const fileUrl = URL.createObjectURL(file);
   
-  // Extract file name without extension to use as customer number by default
+  // Extract customer number from filename (without .pdf extension)
   const fileName = file.name;
   const customerNumberFromFileName = fileName.replace(/\.pdf$/i, "");
   
-  // Simulate random data to represent extracted data from the PDF
-  const utilityType: UtilityType = Math.random() > 0.5 ? "water" : "electricity";
+  // In a real implementation, this would parse the PDF and extract these fields
+  // For now, we'll simulate finding these specific fields
+  const mockPdfContent = "ADRES: Kaya Grandi 15\nFactuurnummer: INV-2024-001\nVerval Datum: 04/15/2024\nFACTUUR DATUM: 03/30/2024\nTE BETALEN: 150.00";
   
-  // Generate random addresses
-  const addresses = [
-    "Kaya Watervillas 84-A",
-    "Kaya Rincon 22",
-    "Kaya Grandi 15",
-    "Playa 102-B",
-    "Kaya Den Haag 30"
-  ];
+  // Parse address (after "ADRES:")
+  const addressMatch = mockPdfContent.match(/ADRES:\s*(.*?)(?:\n|$)/);
+  const address = addressMatch ? addressMatch[1] : "Unknown Address";
   
-  // Randomize invoice date within the last year
-  const today = new Date();
-  const randomDaysAgo = Math.floor(Math.random() * 365);
-  const invoiceDate = new Date(today);
-  invoiceDate.setDate(today.getDate() - randomDaysAgo);
+  // Parse invoice number (after "Factuurnummer:")
+  const invoiceNumberMatch = mockPdfContent.match(/Factuurnummer:\s*(.*?)(?:\n|$)/);
+  const invoiceNumber = invoiceNumberMatch ? invoiceNumberMatch[1] : `INV-${Math.random().toString(36).substring(7)}`;
   
-  // Due date is 14 days after invoice date
-  const dueDate = new Date(invoiceDate);
-  dueDate.setDate(invoiceDate.getDate() + 14);
+  // Parse due date (after "Verval Datum:")
+  const dueDateMatch = mockPdfContent.match(/Verval Datum:\s*(\d{2})\/(\d{2})\/(\d{4})/);
+  const dueDate = dueDateMatch 
+    ? `${dueDateMatch[2]}/${dueDateMatch[1]}/${dueDateMatch[3]}` // Convert to DD/MM/YYYY
+    : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   
-  // Generate a random invoice number
-  const invoiceNumber = `INV-${Math.floor(Math.random() * 100000).toString().padStart(6, '0')}`;
+  // Parse invoice date (after "FACTUUR DATUM:")
+  const invoiceDateMatch = mockPdfContent.match(/FACTUUR DATUM:\s*(\d{2})\/(\d{2})\/(\d{4})/);
+  const invoiceDate = invoiceDateMatch 
+    ? `${invoiceDateMatch[2]}/${invoiceDateMatch[1]}/${invoiceDateMatch[3]}` // Convert to DD/MM/YYYY
+    : new Date().toISOString().split('T')[0];
   
-  // Random amount between $10 and $300
-  const amount = Math.floor(Math.random() * 29000 + 1000) / 100;
-
-  // Simulate a delay to mimic processing time
-  await new Promise(resolve => setTimeout(resolve, 1500));
+  // Parse amount (after "TE BETALEN:")
+  const amountMatch = mockPdfContent.match(/TE BETALEN:\s*(\d+\.?\d*)/);
+  const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
+  
+  // Detect utility type
+  const utilityType: UtilityType = detectUtilityType(mockPdfContent);
+  
+  await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate processing time
   
   return {
     id: Math.random().toString(36).substring(2, 15),
     customerNumber: customerNumberFromFileName,
     invoiceNumber,
-    address: addresses[Math.floor(Math.random() * addresses.length)],
-    invoiceDate: invoiceDate.toISOString().split('T')[0],
-    dueDate: dueDate.toISOString().split('T')[0],
+    address,
+    invoiceDate,
+    dueDate,
     amount,
     isPaid: false,
     utilityType,
