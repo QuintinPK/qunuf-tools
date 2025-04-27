@@ -2,6 +2,7 @@
 import { Invoice, UtilityType } from "../types/invoice";
 import * as pdfjs from 'pdfjs-dist';
 import pdfjsWorkerSrc from 'pdfjs-dist/build/pdf.worker.min.js';
+import { supabase } from "@/integrations/supabase/client";
 
 // Initialize PDF.js worker with ES modules compatible syntax
 const initializeWorker = () => {
@@ -62,10 +63,10 @@ export const extractInvoiceData = async (file: File): Promise<Invoice> => {
     const amountMatch = fullText.match(/TE BETALEN[:\s]+(\d+\.?\d*)/i);
     const amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
     
-    // Detect utility type
+    // Detect utility type based on content
     const utilityType: UtilityType = detectUtilityType(fullText);
     
-    return {
+    const invoice: Invoice = {
       id: Math.random().toString(36).substring(2, 15),
       customerNumber: customerNumberFromFileName,
       invoiceNumber,
@@ -76,8 +77,30 @@ export const extractInvoiceData = async (file: File): Promise<Invoice> => {
       isPaid: false,
       utilityType,
       fileName,
-      pdfBlob: file,
+      pdfBlob: file
     };
+
+    // Store invoice in Supabase
+    const { error } = await supabase
+      .from('invoices')
+      .insert({
+        customer_number: invoice.customerNumber,
+        invoice_number: invoice.invoiceNumber,
+        address: invoice.address,
+        invoice_date: invoice.invoiceDate,
+        due_date: invoice.dueDate,
+        amount: invoice.amount,
+        is_paid: invoice.isPaid,
+        utility_type: invoice.utilityType,
+        file_name: invoice.fileName
+      });
+
+    if (error) {
+      console.error("Error storing invoice:", error);
+      throw new Error(`Failed to store invoice: ${error.message}`);
+    }
+
+    return invoice;
   } catch (error) {
     console.error("Error extracting PDF data:", error);
     throw new Error(`Failed to extract data from PDF: ${error.message}`);
@@ -85,7 +108,6 @@ export const extractInvoiceData = async (file: File): Promise<Invoice> => {
 };
 
 export const detectUtilityType = (text: string): UtilityType => {
-  // In a real implementation, this would analyze the PDF text content
   if (text.toLowerCase().includes("m3") || text.toLowerCase().includes("water")) {
     return "water";
   } else if (text.toLowerCase().includes("kwh") || text.toLowerCase().includes("electricity")) {
