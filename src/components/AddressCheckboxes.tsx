@@ -48,10 +48,9 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
                 checked={isSelected}
                 id={`address-${address}`}
                 className="h-5 w-5"
-                tabIndex={-1} // Remove from tab order since parent is focusable
-                // Using a dummy onChange to make React happy with controlled components
-                onCheckedChange={() => {}}
-              />
+                tabIndex={-1}
+                onCheckedChange={() => handleToggle(address)}
+               />
               <Label 
                 htmlFor={`address-${address}`}
                 className="flex-1 cursor-pointer text-sm font-medium"
