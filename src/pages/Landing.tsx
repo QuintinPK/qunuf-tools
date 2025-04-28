@@ -2,20 +2,20 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Droplet, Nut, Table, FileText } from "lucide-react";
+import { Droplet, Nut, Table, FileText, NotebookPen } from "lucide-react";
 
 const tools = [
   {
-    name: "Meter Reading Recorder",
+    name: "Meter reading recorder",
     description: "Quickly record your electricity and water meter readings",
-    icon: <Nut className="h-10 w-10 text-emerald-500" />,
+    icon: <NotebookPen className="h-10 w-10 text-emerald-500" />,
     path: "/meter-reading",
     color: "bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200",
     iconBg: "bg-emerald-100",
     actions: [
       {
         name: "Record Reading",
-        icon: <Nut className="h-4 w-4" />,
+        icon: <NotebookPen className="h-4 w-4" />,
         path: "/meter-reading"
       },
       {
