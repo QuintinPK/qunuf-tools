@@ -1,4 +1,3 @@
-
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
@@ -47,13 +46,8 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
               <Checkbox 
                 checked={isSelected}
                 id={`address-${address}`}
-                className="h-5 w-5"
-                tabIndex={-1}
-                onCheckedChange={(checked) => {
-                  if (typeof checked === 'boolean') {
-                    handleToggle(address);
-                  }
-                }}
+                className="h-5 w-5 pointer-events-none" // Disable click inside checkbox itself
+                tabIndex={-1} // Remove from tab order since parent is focusable
               />
               <Label 
                 htmlFor={`address-${address}`}
