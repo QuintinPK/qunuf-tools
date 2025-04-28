@@ -24,8 +24,8 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
         {addresses.map((address) => {
           const isSelected = selectedAddresses.includes(address);
           return (
-            <div 
-              key={address} 
+            <div
+              key={address}
               className={`
                 flex items-center space-x-3 p-3 rounded-lg cursor-pointer
                 border-2 transition-all
@@ -42,14 +42,13 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
                 }
               }}
             >
-              <Checkbox 
+              <Checkbox
                 checked={isSelected}
-                onCheckedChange={() => {}} // <<<<<<<< ADD THIS
                 id={`address-${address}`}
                 className="h-5 w-5 pointer-events-none"
                 tabIndex={-1}
               />
-              <Label 
+              <Label
                 htmlFor={`address-${address}`}
                 className="flex-1 cursor-pointer text-sm font-medium"
               >
