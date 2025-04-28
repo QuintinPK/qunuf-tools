@@ -38,11 +38,11 @@ const ViewMeterReadings = () => {
   });
 
   // Set up selected addresses when addresses data loads
-  useEffect(() => {
-    if (addresses.length > 0 && selectedAddresses.length === 0) {
-      setSelectedAddresses(addresses);
-    }
-  }, [addresses, selectedAddresses.length]);
+    useEffect(() => {
+      if (addresses.length > 0) {
+        setSelectedAddresses(addresses);
+      }
+    }, [addresses]);
 
   // Simple handler for toggling address selection
   const handleAddressChange = (address: string) => {
