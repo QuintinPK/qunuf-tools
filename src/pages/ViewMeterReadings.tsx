@@ -104,7 +104,7 @@ const ViewMeterReadings = () => {
 
   // Calculate statistics for each selected address
   const calculateStats = (address: string, utilityType: 'electricity' | 'water') => {
-    if (!readings || !startDate || !endDate || readings.length === 0) {
+    if (!readings || !readings.length) {
       return { avg_consumption_per_day: 0 };
     }
 
@@ -175,8 +175,7 @@ const ViewMeterReadings = () => {
                 onClick={() => toggleAddress(addressOption.address)}
               >
                 <Checkbox 
-                  checked={addressOption.selected} 
-                  onCheckedChange={() => toggleAddress(addressOption.address)} 
+                  checked={addressOption.selected}
                   id={`address-${addressOption.address}`}
                   className="h-5 w-5"
                 />

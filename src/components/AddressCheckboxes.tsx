@@ -29,8 +29,7 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
             onClick={() => onAddressChange(address)}
           >
             <Checkbox 
-              checked={selectedAddresses.includes(address)} 
-              onCheckedChange={() => onAddressChange(address)} 
+              checked={selectedAddresses.includes(address)}
               id={`address-${address}`}
               className="h-5 w-5"
             />
