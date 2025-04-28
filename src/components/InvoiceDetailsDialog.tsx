@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Download, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
 import { Invoice } from '@/types/invoice';
 import { cn } from '@/lib/utils';
+import { handlePDFAction } from '@/utils/pdfUtils';
 
 interface InvoiceDetailsDialogProps {
   invoice: Invoice | null;
@@ -44,23 +44,15 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
     currency: 'USD',
   }).format(localInvoice.amount);
 
-  const handleDownload = () => {
-    if (localInvoice.pdfBlob) {
-      const url = URL.createObjectURL(localInvoice.pdfBlob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = localInvoice.fileName || `invoice-${localInvoice.invoiceNumber}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+  const handleViewOriginal = () => {
+    if (localInvoice?.pdfBlob) {
+      handlePDFAction(localInvoice.pdfBlob, localInvoice.fileName);
     }
   };
 
-  const handleViewOriginal = () => {
-    if (localInvoice.pdfBlob) {
-      const url = URL.createObjectURL(localInvoice.pdfBlob);
-      window.open(url, '_blank');
+  const handleDownload = () => {
+    if (localInvoice?.pdfBlob) {
+      handlePDFAction(localInvoice.pdfBlob, localInvoice.fileName, true);
     }
   };
 

@@ -1,21 +1,22 @@
-
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Invoice } from '@/types/invoice';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { ChartContainer, ChartTooltip } from './ui/chart';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { format } from 'date-fns';
 
 interface InvoiceStatsProps {
   invoices: Invoice[];
 }
 
-// Custom sort order for addresses
 const addressOrder = [
   'Watervillas 84-A',
   'Watervillas 84-B',
   'Kaya Kuarts 23'
 ];
 
-// Custom sort function
 const sortByCustomOrder = (a: any, b: any) => {
   const indexA = addressOrder.indexOf(a.address);
   const indexB = addressOrder.indexOf(b.address);
@@ -28,64 +29,53 @@ const sortByCustomOrder = (a: any, b: any) => {
 };
 
 const InvoiceStats: React.FC<InvoiceStatsProps> = ({ invoices }) => {
-  const electricityData = useMemo(() => {
-    const addressTotals = new Map<string, { total: number, count: number }>();
+  const [selectedAddress, setSelectedAddress] = useState<string>('all');
+  
+  const addresses = [...new Set(invoices.map(inv => inv.address))];
+  
+  const prepareMonthlyData = (utilityType: 'electricity' | 'water') => {
+    const filteredInvoices = invoices
+      .filter(inv => inv.utilityType === utilityType)
+      .filter(inv => selectedAddress === 'all' || inv.address === selectedAddress);
+
+    const monthlyData = new Map<string, { total: number, count: number }>();
     
-    invoices
-      .filter(inv => inv.utilityType === 'electricity')
-      .forEach(inv => {
-        const current = addressTotals.get(inv.address) || { total: 0, count: 0 };
-        addressTotals.set(inv.address, { 
-          total: current.total + inv.amount, 
-          count: current.count + 1 
-        });
+    filteredInvoices.forEach(inv => {
+      const monthKey = format(new Date(inv.invoiceDate), 'yyyy-MM');
+      const current = monthlyData.get(monthKey) || { total: 0, count: 0 };
+      monthlyData.set(monthKey, {
+        total: current.total + inv.amount,
+        count: current.count + 1
       });
-    
-    return Array.from(addressTotals.entries())
-      .map(([address, data]) => ({
-        address,
-        total: data.total,
+    });
+
+    return Array.from(monthlyData.entries())
+      .map(([date, data]) => ({
+        date,
+        amount: data.total,
         average: data.total / data.count
       }))
-      .sort(sortByCustomOrder);
-  }, [invoices]);
+      .sort((a, b) => a.date.localeCompare(b.date));
+  };
 
-  const waterData = useMemo(() => {
-    const addressTotals = new Map<string, { total: number, count: number }>();
-    
-    invoices
-      .filter(inv => inv.utilityType === 'water')
-      .forEach(inv => {
-        const current = addressTotals.get(inv.address) || { total: 0, count: 0 };
-        addressTotals.set(inv.address, { 
-          total: current.total + inv.amount, 
-          count: current.count + 1 
-        });
-      });
-    
-    return Array.from(addressTotals.entries())
-      .map(([address, data]) => ({
-        address,
-        total: data.total,
-        average: data.total / data.count
-      }))
-      .sort(sortByCustomOrder);
-  }, [invoices]);
+  const electricityData = prepareMonthlyData('electricity');
+  const waterData = prepareMonthlyData('water');
 
-  // Custom tooltip formatter to display the average
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-4 border border-gray-200 shadow-lg rounded-md">
-          <p className="font-bold text-sm">{label}</p>
+          <p className="font-bold text-sm">{format(new Date(label), 'MMMM yyyy')}</p>
           <p className="text-electricity-dark">
             <span className="font-medium">Total: </span>
             <span className="font-bold">${payload[0].value.toFixed(2)}</span>
           </p>
-          <p className="text-electricity-dark">
-            <span className="font-medium">Avg: </span>
-            <span className="font-bold">${payload[0].payload.average.toFixed(2)}</span>
-          </p>
+          {payload[1] && (
+            <p className="text-electricity-dark">
+              <span className="font-medium">Average: </span>
+              <span className="font-bold">${payload[1].value.toFixed(2)}</span>
+            </p>
+          )}
         </div>
       );
     }
@@ -94,6 +84,22 @@ const InvoiceStats: React.FC<InvoiceStatsProps> = ({ invoices }) => {
 
   return (
     <div className="grid gap-8">
+      <div className="w-full max-w-xs">
+        <Select value={selectedAddress} onValueChange={setSelectedAddress}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select address" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Addresses</SelectItem>
+            {addresses.map(address => (
+              <SelectItem key={address} value={address}>
+                {address}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <Card className="bg-gradient-to-br from-electricity-light to-white">
         <CardHeader>
           <CardTitle className="text-electricity-dark text-xl">Electricity Costs by Address</CardTitle>
@@ -192,6 +198,78 @@ const InvoiceStats: React.FC<InvoiceStatsProps> = ({ invoices }) => {
                 />
               </Bar>
             </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-br from-electricity-light to-white">
+        <CardHeader>
+          <CardTitle className="text-electricity-dark text-xl">Monthly Electricity Costs</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[400px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={electricityData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="date"
+                tickFormatter={(value) => format(new Date(value), 'MMM yyyy')}
+              />
+              <YAxis tickFormatter={(value) => `$${value}`} />
+              <Tooltip content={<CustomTooltip />} />
+              <Line 
+                type="monotone" 
+                dataKey="amount" 
+                stroke="#FB8C00" 
+                strokeWidth={2}
+                dot={{ fill: '#FB8C00' }}
+                name="Total"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="average" 
+                stroke="#FFB74D" 
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={{ fill: '#FFB74D' }}
+                name="Average"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card className="bg-gradient-to-br from-water-light to-white">
+        <CardHeader>
+          <CardTitle className="text-water-dark text-xl">Monthly Water Costs</CardTitle>
+        </CardHeader>
+        <CardContent className="h-[400px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={waterData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="date"
+                tickFormatter={(value) => format(new Date(value), 'MMM yyyy')}
+              />
+              <YAxis tickFormatter={(value) => `$${value}`} />
+              <Tooltip content={<CustomTooltip />} />
+              <Line 
+                type="monotone" 
+                dataKey="amount" 
+                stroke="#1E88E5" 
+                strokeWidth={2}
+                dot={{ fill: '#1E88E5' }}
+                name="Total"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="average" 
+                stroke="#64B5F6" 
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={{ fill: '#64B5F6' }}
+                name="Average"
+              />
+            </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
