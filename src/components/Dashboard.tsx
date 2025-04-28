@@ -26,6 +26,7 @@ const Dashboard = () => {
   const [viewType, setViewType] = useState<'list' | 'grid'>('list');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showUploader, setShowUploader] = useState(false);
 
   useEffect(() => {
     loadInvoices();
@@ -123,32 +124,47 @@ const Dashboard = () => {
     setFilters(newFilters);
   };
 
-  const filteredInvoices = invoices.filter(invoice => {
-    if (filters.address && !invoice.address.toLowerCase().includes(filters.address.toLowerCase())) {
-      return false;
-    }
-    
-    if (filters.utilityType !== 'all' && invoice.utilityType !== filters.utilityType) {
-      return false;
-    }
-    
-    if (filters.paymentStatus === 'paid' && !invoice.isPaid) {
-      return false;
-    }
-    
-    if (filters.paymentStatus === 'unpaid' && invoice.isPaid) {
-      return false;
-    }
-    
-    return true;
-  });
+  const filteredInvoices = invoices
+    .filter(invoice => {
+      if (filters.address && !invoice.address.toLowerCase().includes(filters.address.toLowerCase())) {
+        return false;
+      }
+      
+      if (filters.utilityType !== 'all' && invoice.utilityType !== filters.utilityType) {
+        return false;
+      }
+      
+      if (filters.paymentStatus === 'paid' && !invoice.isPaid) {
+        return false;
+      }
+      
+      if (filters.paymentStatus === 'unpaid' && invoice.isPaid) {
+        return false;
+      }
+      
+      return true;
+    })
+    .sort((a, b) => new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime());
 
   return (
     <div className="container mx-auto p-4 max-w-5xl">
       <div className="grid gap-8">
         <div>
-          <h2 className="text-xl font-semibold mb-4">Upload New Invoice</h2>
-          <InvoiceUploader onInvoiceProcessed={handleInvoiceProcessed} />
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Upload New Invoice</h2>
+            <Button 
+              onClick={() => setShowUploader(!showUploader)}
+              variant={showUploader ? "secondary" : "default"}
+            >
+              {showUploader ? "Cancel Upload" : "Upload PDF"}
+            </Button>
+          </div>
+          {showUploader && (
+            <InvoiceUploader onInvoiceProcessed={(invoice) => {
+              handleInvoiceProcessed(invoice);
+              setShowUploader(false);
+            }} />
+          )}
         </div>
 
         <Tabs defaultValue="invoices" className="mt-12">

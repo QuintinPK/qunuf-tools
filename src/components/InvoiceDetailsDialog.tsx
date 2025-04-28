@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { Download, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
+import { Download, CheckCircle2, XCircle, Trash2, ExternalLink } from 'lucide-react';
 import { Invoice } from '@/types/invoice';
 import { cn } from '@/lib/utils';
 
@@ -58,10 +57,8 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
   };
 
   const handleViewOriginal = () => {
-    if (localInvoice.pdfBlob) {
-      const url = URL.createObjectURL(localInvoice.pdfBlob);
-      window.open(url, '_blank');
-    }
+    const gmailSearchUrl = `https://mail.google.com/mail/u/0/#search/${localInvoice?.invoiceNumber}`;
+    window.open(gmailSearchUrl, '_blank');
   };
 
   const handlePaidClick = () => {
@@ -104,41 +101,44 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
             <DialogTitle className="flex justify-between items-center">
               <span>Invoice Details</span>
               <Badge
-                variant={localInvoice.isPaid ? "outline" : "default"}
+                variant={localInvoice?.isPaid ? "outline" : "default"}
                 className={cn(
-                  localInvoice.isPaid ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
+                  localInvoice?.isPaid ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"
                 )}
               >
-                {localInvoice.isPaid ? "Paid" : "Unpaid"}
+                {localInvoice?.isPaid ? "Paid" : "Unpaid"}
               </Badge>
             </DialogTitle>
             <DialogDescription>
-              {localInvoice.utilityType === "water" ? "Water" : "Electricity"} invoice for {localInvoice.address}
+              {localInvoice?.utilityType === "water" ? "Water" : "Electricity"} invoice for {localInvoice?.address}
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid grid-cols-2 gap-4">
             <div className="text-sm font-medium">Customer Number:</div>
-            <div className="text-sm">{localInvoice.customerNumber}</div>
+            <div className="text-sm">{localInvoice?.customerNumber}</div>
             
             <div className="text-sm font-medium">Invoice Number:</div>
-            <div className="text-sm">{localInvoice.invoiceNumber}</div>
+            <div className="text-sm">{localInvoice?.invoiceNumber}</div>
             
             <div className="text-sm font-medium">Invoice Date:</div>
-            <div className="text-sm">{localInvoice.invoiceDate}</div>
+            <div className="text-sm">{localInvoice?.invoiceDate}</div>
             
             <div className="text-sm font-medium">Due Date:</div>
-            <div className="text-sm">{localInvoice.dueDate}</div>
+            <div className="text-sm">{localInvoice?.dueDate}</div>
             
             <div className="text-sm font-medium">Amount Due:</div>
             <div className={cn(
               "text-sm font-bold",
-              localInvoice.isPaid ? "line-through opacity-70" : ""
+              localInvoice?.isPaid ? "line-through opacity-70" : ""
             )}>
-              {formattedAmount}
+              {localInvoice && new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              }).format(localInvoice.amount)}
             </div>
 
-            {localInvoice.isPaid && localInvoice.paymentDate && (
+            {localInvoice?.isPaid && localInvoice.paymentDate && (
               <>
                 <div className="text-sm font-medium">Payment Date:</div>
                 <div className="text-sm">{new Date(localInvoice.paymentDate).toLocaleDateString()}</div>
@@ -148,13 +148,10 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
 
           <Separator />
 
-          <div className="flex justify-between">
+          <div className="flex justify-center">
             <Button variant="outline" onClick={handleViewOriginal}>
-              View Original PDF
-            </Button>
-            <Button variant="outline" onClick={handleDownload}>
-              <Download className="mr-2 h-4 w-4" />
-              Download
+              <ExternalLink className="mr-2 h-4 w-4" />
+              View in Gmail
             </Button>
           </div>
           
@@ -168,10 +165,10 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
             </Button>
             <Button
               onClick={handlePaidClick}
-              variant={localInvoice.isPaid ? "outline" : "default"}
-              className={localInvoice.isPaid ? "bg-gray-100" : ""}
+              variant={localInvoice?.isPaid ? "outline" : "default"}
+              className={localInvoice?.isPaid ? "bg-gray-100" : ""}
             >
-              {localInvoice.isPaid ? (
+              {localInvoice?.isPaid ? (
                 <>
                   <XCircle className="mr-2 h-4 w-4" />
                   Mark as Unpaid
