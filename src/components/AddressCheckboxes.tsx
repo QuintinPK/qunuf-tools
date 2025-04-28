@@ -10,7 +10,6 @@ interface AddressCheckboxesProps {
 }
 
 const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: AddressCheckboxesProps) => {
-  // Simple toggle function that calls the parent handler
   const handleToggle = (address: string) => {
     onAddressChange(address);
   };
@@ -45,9 +44,10 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
             >
               <Checkbox 
                 checked={isSelected}
+                onCheckedChange={() => {}} // <<<<<<<< ADD THIS
                 id={`address-${address}`}
-                className="h-5 w-5 pointer-events-none" // Disable click inside checkbox itself
-                tabIndex={-1} // Remove from tab order since parent is focusable
+                className="h-5 w-5 pointer-events-none"
+                tabIndex={-1}
               />
               <Label 
                 htmlFor={`address-${address}`}
