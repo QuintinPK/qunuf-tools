@@ -1,16 +1,15 @@
 
-import React from "react";
-import Dashboard from "@/components/Dashboard";
-import { useIsMobile } from "@/hooks/use-mobile";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
-  const isMobile = useIsMobile();
+  const navigate = useNavigate();
   
-  return (
-    <div className={`${isMobile ? 'px-2 py-4' : 'container mx-auto py-8 px-4'}`}>
-      <Dashboard />
-    </div>
-  );
+  useEffect(() => {
+    navigate("/");
+  }, [navigate]);
+  
+  return <div>Redirecting...</div>;
 };
 
 export default Index;
