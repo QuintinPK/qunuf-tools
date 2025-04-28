@@ -18,8 +18,8 @@ const MeterReadingForm = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('addresses')
-        .select('address')
-        .order('address');
+        .select('address_label')
+        .order('address_label');
       
       if (error) throw error;
       return data;
