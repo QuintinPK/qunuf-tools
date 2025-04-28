@@ -49,8 +49,12 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
                 id={`address-${address}`}
                 className="h-5 w-5"
                 tabIndex={-1}
-                onCheckedChange={() => handleToggle(address)}
-               />
+                onCheckedChange={(checked) => {
+                  if (typeof checked === 'boolean') {
+                    handleToggle(address);
+                  }
+                }}
+              />
               <Label 
                 htmlFor={`address-${address}`}
                 className="flex-1 cursor-pointer text-sm font-medium"
