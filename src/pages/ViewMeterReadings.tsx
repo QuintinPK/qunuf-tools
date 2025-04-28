@@ -44,6 +44,7 @@ const ViewMeterReadings = () => {
     }
   }, [addresses, selectedAddresses.length]);
 
+  // Simple handler for toggling address selection
   const handleAddressChange = (address: string) => {
     setSelectedAddresses(prev => {
       if (prev.includes(address)) {

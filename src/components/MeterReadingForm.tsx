@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import AddressCheckboxes from "./AddressCheckboxes";
 
 interface FormData {
@@ -74,6 +74,7 @@ const MeterReadingForm = () => {
     }
   };
 
+  // Simple handler for toggling address selection
   const handleAddressChange = (address: string) => {
     setSelectedAddresses(prev => {
       if (prev.includes(address)) {
