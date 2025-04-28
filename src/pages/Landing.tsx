@@ -3,13 +3,13 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { WaterIcon, ZapIcon, FileTextIcon } from "lucide-react";
+import { Droplet } from "lucide-react";
 
 const tools = [
   {
     name: "WEB Tracker",
     description: "Track your Water, Electricity, and Bills in one place",
-    icon: <FileTextIcon className="h-10 w-10 text-blue-500" />,
+    icon: <Droplet className="h-10 w-10 text-blue-500" />,
     path: "/web-tracker",
     color: "bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200",
     iconBg: "bg-blue-100"
