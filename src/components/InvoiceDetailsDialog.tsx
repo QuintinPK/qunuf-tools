@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Calendar } from '@/components/ui/calendar';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
-import { Download, CheckCircle2, XCircle, Trash2, Save } from 'lucide-react';
+import { Download, CheckCircle2, XCircle, Trash2 } from 'lucide-react';
 import { Invoice } from '@/types/invoice';
 import { cn } from '@/lib/utils';
 
@@ -29,13 +29,11 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [localInvoice, setLocalInvoice] = useState<Invoice | null>(null);
-  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (invoice) {
       setLocalInvoice({...invoice});
       setSelectedDate(invoice.paymentDate ? new Date(invoice.paymentDate) : undefined);
-      setHasChanges(false);
     }
   }, [invoice]);
 
@@ -47,11 +45,15 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
   }).format(localInvoice.amount);
 
   const handleDownload = () => {
-    if (localInvoice.pdfBlob) {
+    if (localInvoice.pdfUrl) {
+      // Handle case where there's a URL to the PDF
+      window.open(localInvoice.pdfUrl, '_blank');
+    } else if (localInvoice.pdfBlob) {
+      // Handle case where there's a Blob object
       const url = URL.createObjectURL(localInvoice.pdfBlob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = localInvoice.fileName;
+      a.download = localInvoice.fileName || `invoice-${localInvoice.invoiceNumber}.pdf`;
       document.body.appendChild(a);
       a.click();
       URL.revokeObjectURL(url);
@@ -60,7 +62,9 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
   };
 
   const handleViewOriginal = () => {
-    if (localInvoice.pdfBlob) {
+    if (localInvoice.pdfUrl) {
+      window.open(localInvoice.pdfUrl, '_blank');
+    } else if (localInvoice.pdfBlob) {
       const url = URL.createObjectURL(localInvoice.pdfBlob);
       window.open(url, '_blank');
     }
@@ -78,7 +82,6 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
     try {
       const updatedInvoice = await onTogglePaid(localInvoice, date);
       setLocalInvoice(updatedInvoice);
-      setHasChanges(false);
       
       if (date) {
         setSelectedDate(date);
@@ -96,15 +99,6 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
       setSelectedDate(date);
       handleTogglePaidStatus(date);
       setShowCalendar(false);
-    }
-  };
-
-  const handleSaveAndClose = async () => {
-    try {
-      await onTogglePaid(localInvoice, selectedDate);
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error saving invoice:", error);
     }
   };
 
@@ -178,29 +172,23 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
               <Trash2 className="mr-2 h-4 w-4" />
               Delete Invoice
             </Button>
-            <div className="flex gap-2">
-              <Button
-                onClick={handlePaidClick}
-                variant={localInvoice.isPaid ? "outline" : "default"}
-                className={localInvoice.isPaid ? "bg-gray-100" : ""}
-              >
-                {localInvoice.isPaid ? (
-                  <>
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Mark as Unpaid
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
-                    Mark as Paid
-                  </>
-                )}
-              </Button>
-              <Button onClick={handleSaveAndClose} variant="secondary">
-                <Save className="mr-2 h-4 w-4" />
-                Save & Close
-              </Button>
-            </div>
+            <Button
+              onClick={handlePaidClick}
+              variant={localInvoice.isPaid ? "outline" : "default"}
+              className={localInvoice.isPaid ? "bg-gray-100" : ""}
+            >
+              {localInvoice.isPaid ? (
+                <>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Mark as Unpaid
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                  Mark as Paid
+                </>
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

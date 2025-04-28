@@ -1,20 +1,39 @@
 
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { FilterOptions } from '@/types/invoice';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface InvoiceFilterProps {
   filters: FilterOptions;
   onFilterChange: (filters: FilterOptions) => void;
+  invoices: any[]; // We'll use this to extract unique addresses
 }
 
-const InvoiceFilter: React.FC<InvoiceFilterProps> = ({ filters, onFilterChange }) => {
-  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+const InvoiceFilter: React.FC<InvoiceFilterProps> = ({ filters, onFilterChange, invoices }) => {
+  const isMobile = useIsMobile();
+  
+  // Extract unique addresses from invoices
+  const uniqueAddresses = React.useMemo(() => {
+    const addresses = new Set<string>();
+    addresses.add('all'); // Add the "all" option
+    
+    if (invoices && invoices.length) {
+      invoices.forEach(invoice => {
+        if (invoice.address) {
+          addresses.add(invoice.address);
+        }
+      });
+    }
+    
+    return Array.from(addresses);
+  }, [invoices]);
+
+  const handleAddressChange = (value: string) => {
     onFilterChange({
       ...filters,
-      address: e.target.value,
+      address: value === 'all' ? '' : value,
     });
   };
 
@@ -36,15 +55,23 @@ const InvoiceFilter: React.FC<InvoiceFilterProps> = ({ filters, onFilterChange }
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Filter Invoices</h3>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-1 md:grid-cols-3 gap-4'}`}>
         <div className="space-y-2">
           <Label htmlFor="address-filter">Property Address</Label>
-          <Input
-            id="address-filter"
-            placeholder="Search address..."
-            value={filters.address || ''}
-            onChange={handleAddressChange}
-          />
+          <Select
+            value={filters.address || 'all'}
+            onValueChange={handleAddressChange}
+          >
+            <SelectTrigger id="address-filter">
+              <SelectValue placeholder="All Properties" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Properties</SelectItem>
+              {uniqueAddresses.filter(addr => addr !== 'all').map(address => (
+                <SelectItem key={address} value={address}>{address}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         
         <div className="space-y-2">
