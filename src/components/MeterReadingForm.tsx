@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const MeterReadingForm = () => {
   const [selectedAddress, setSelectedAddress] = useState("");
@@ -13,7 +14,7 @@ const MeterReadingForm = () => {
   const [waterReading, setWaterReading] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { data: addresses } = useQuery({
+  const { data: addresses, isLoading: isLoadingAddresses, error: addressesError } = useQuery({
     queryKey: ['addresses'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -21,7 +22,10 @@ const MeterReadingForm = () => {
         .select('address')
         .order('address');
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching addresses:", error);
+        throw error;
+      }
       return data;
     }
   });
@@ -56,24 +60,28 @@ const MeterReadingForm = () => {
     }
   };
 
+  if (addressesError) {
+    return <div className="text-red-500">Error loading addresses. Please try again later.</div>;
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
         <Label htmlFor="address">Select Address</Label>
-        <select
-          id="address"
-          value={selectedAddress}
-          onChange={(e) => setSelectedAddress(e.target.value)}
-          className="w-full mt-1 rounded-md border border-input bg-background px-3 h-10"
-          required
-        >
-          <option value="">Select an address...</option>
-          {addresses?.map((addr) => (
-            <option key={addr.address} value={addr.address}>
-              {addr.address}
-            </option>
-          ))}
-        </select>
+        <Select value={selectedAddress} onValueChange={setSelectedAddress}>
+          <SelectTrigger id="address" className="w-full mt-1">
+            <SelectValue placeholder="Select an address..." />
+          </SelectTrigger>
+          <SelectContent>
+            {isLoadingAddresses ? (
+              <SelectItem value="loading" disabled>Loading addresses...</SelectItem>
+            ) : addresses?.map((addr) => (
+              <SelectItem key={addr.address} value={addr.address}>
+                {addr.address}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
