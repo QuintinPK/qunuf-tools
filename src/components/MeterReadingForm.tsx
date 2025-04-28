@@ -1,20 +1,26 @@
 
 import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
+import AddressCheckboxes from "./AddressCheckboxes";
+
+interface FormData {
+  electricityReading?: number;
+  waterReading?: number;
+}
 
 const MeterReadingForm = () => {
-  const [selectedAddress, setSelectedAddress] = useState("");
-  const [electricityReading, setElectricityReading] = useState("");
-  const [waterReading, setWaterReading] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>();
 
-  const { data: addresses, isLoading: isLoadingAddresses, error: addressesError } = useQuery({
+  // Fetch unique addresses
+  const { data: addresses = [] } = useQuery({
     queryKey: ['addresses'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -22,99 +28,101 @@ const MeterReadingForm = () => {
         .select('address')
         .order('address');
       
-      if (error) {
-        console.error("Error fetching addresses:", error);
-        throw error;
-      }
-      return data;
+      if (error) throw error;
+      return data.map(item => item.address);
     }
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedAddress) {
-      toast.error("Please select an address");
+  const onSubmit = async (data: FormData) => {
+    if (selectedAddresses.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one address",
+        variant: "destructive"
+      });
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('meter_readings')
-        .insert({
-          address: selectedAddress,
-          electricity_reading: electricityReading ? parseFloat(electricityReading) : null,
-          water_reading: waterReading ? parseFloat(waterReading) : null,
-        });
+      const promises = selectedAddresses.map(address => 
+        supabase
+          .from('meter_readings')
+          .insert([
+            {
+              address,
+              electricity_reading: data.electricityReading,
+              water_reading: data.waterReading,
+            }
+          ])
+      );
 
-      if (error) throw error;
+      await Promise.all(promises);
 
-      toast.success("Readings saved successfully");
-      setElectricityReading("");
-      setWaterReading("");
+      toast({
+        title: "Success",
+        description: "Meter readings recorded successfully",
+      });
+
+      reset();
+      setSelectedAddresses([]);
     } catch (error) {
-      console.error("Error saving readings:", error);
-      toast.error("Failed to save readings");
-    } finally {
-      setIsSubmitting(false);
+      toast({
+        title: "Error",
+        description: "Failed to record meter readings",
+        variant: "destructive"
+      });
     }
   };
 
-  if (addressesError) {
-    return <div className="text-red-500">Error loading addresses. Please try again later.</div>;
-  }
+  const handleAddressChange = (address: string) => {
+    setSelectedAddresses(prev => 
+      prev.includes(address) 
+        ? prev.filter(a => a !== address)
+        : [...prev, address]
+    );
+  };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div>
-        <Label htmlFor="address">Select Address</Label>
-        <Select value={selectedAddress} onValueChange={setSelectedAddress}>
-          <SelectTrigger id="address" className="w-full mt-1">
-            <SelectValue placeholder="Select an address..." />
-          </SelectTrigger>
-          <SelectContent>
-            {isLoadingAddresses ? (
-              <SelectItem value="loading" disabled>Loading addresses...</SelectItem>
-            ) : addresses?.map((addr) => (
-              <SelectItem key={addr.address} value={addr.address}>
-                {addr.address}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <AddressCheckboxes 
+        addresses={addresses}
+        selectedAddresses={selectedAddresses}
+        onAddressChange={handleAddressChange}
+      />
 
-      <div>
-        <Label htmlFor="electricity">Electricity Reading</Label>
-        <Input
-          id="electricity"
-          type="number"
-          step="0.01"
-          value={electricityReading}
-          onChange={(e) => setElectricityReading(e.target.value)}
-          className="mt-1"
-          placeholder="Enter electricity reading"
-          inputMode="decimal"
-        />
-      </div>
+      <Card className="p-4">
+        <div className="space-y-4">
+          <div>
+            <label htmlFor="electricityReading" className="block text-sm font-medium mb-1">
+              Electricity Reading
+            </label>
+            <Input
+              id="electricityReading"
+              type="number"
+              step="0.01"
+              {...register("electricityReading")}
+              className="w-full"
+            />
+          </div>
 
-      <div>
-        <Label htmlFor="water">Water Reading</Label>
-        <Input
-          id="water"
-          type="number"
-          step="0.01"
-          value={waterReading}
-          onChange={(e) => setWaterReading(e.target.value)}
-          className="mt-1"
-          placeholder="Enter water reading"
-          inputMode="decimal"
-        />
-      </div>
+          <div>
+            <label htmlFor="waterReading" className="block text-sm font-medium mb-1">
+              Water Reading
+            </label>
+            <Input
+              id="waterReading"
+              type="number"
+              step="0.01"
+              {...register("waterReading")}
+              className="w-full"
+            />
+          </div>
 
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Saving..." : "Save Readings"}
-      </Button>
+          <Button type="submit" className="w-full">
+            Submit Readings
+          </Button>
+        </div>
+      </Card>
     </form>
   );
 };
