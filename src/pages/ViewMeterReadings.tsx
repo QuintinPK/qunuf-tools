@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
@@ -9,7 +8,7 @@ import DateRangeFilter from "@/components/DateRangeFilter";
 import StatsCard from "@/components/StatsCard";
 
 interface MeterReading {
-  id: string;  // Changed from number to string since Supabase uses UUID
+  id: string;
   address: string;
   electricity_reading: number | null;
   water_reading: number | null;
@@ -32,19 +31,13 @@ const ViewMeterReadings = () => {
   const { data: readings, isLoading: isLoadingReadings } = useQuery<MeterReading[]>({
     queryKey: ['meter-readings', startDate, endDate],
     queryFn: async () => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('meter_readings')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .gte('created_at', startDate?.toISOString() ?? '1970-01-01')
+        .lte('created_at', endDate?.toISOString() ?? new Date().toISOString());
 
-      if (startDate) {
-        query = query.gte('created_at', startDate.toISOString());
-      }
-      if (endDate) {
-        query = query.lte('created_at', endDate.toISOString());
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return data;
     }
