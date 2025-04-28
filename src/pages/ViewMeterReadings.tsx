@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
@@ -43,7 +44,7 @@ const ViewMeterReadings = () => {
     }
   });
 
-  const { data: electricityStats, isLoading: isLoadingElectricityStats } = useQuery({
+  const { data: electricityStats, isLoading: isLoadingElectricityStats } = useQuery<ElectricityStatsResult>({
     queryKey: ['electricity-stats', startDate, endDate],
     queryFn: async () => {
       const params = {
@@ -55,12 +56,12 @@ const ViewMeterReadings = () => {
         .rpc('calculate_electricity_consumption_per_day', params);
       
       if (error) throw error;
-      return (data as any as ElectricityStatsResult[]) ? (data as any as ElectricityStatsResult[])[0] : { avg_consumption_per_day: 0 };
+      return data as ElectricityStatsResult;
     },
     enabled: Boolean(startDate || endDate)
   });
 
-  const { data: waterStats, isLoading: isLoadingWaterStats } = useQuery({
+  const { data: waterStats, isLoading: isLoadingWaterStats } = useQuery<WaterStatsResult>({
     queryKey: ['water-stats', startDate, endDate],
     queryFn: async () => {
       const params = {
@@ -72,7 +73,7 @@ const ViewMeterReadings = () => {
         .rpc('calculate_water_consumption_per_day', params);
       
       if (error) throw error;
-      return (data as any as WaterStatsResult[]) ? (data as any as WaterStatsResult[])[0] : { avg_consumption_per_day: 0 };
+      return data as WaterStatsResult;
     },
     enabled: Boolean(startDate || endDate)
   });
