@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
@@ -42,7 +41,7 @@ const ViewMeterReadings = () => {
       }
 
       const { data, error } = await supabase
-        .rpc<ElectricityStatsResult>('calculate_electricity_consumption_per_day', {
+        .rpc<ElectricityStatsResult, {start_date: string, end_date: string}>('calculate_electricity_consumption_per_day', {
           start_date: startDate?.toISOString() || new Date(0).toISOString(),
           end_date: endDate?.toISOString() || new Date().toISOString()
         });
@@ -61,7 +60,7 @@ const ViewMeterReadings = () => {
       }
 
       const { data, error } = await supabase
-        .rpc<WaterStatsResult>('calculate_water_consumption_per_day', {
+        .rpc<WaterStatsResult, {start_date: string, end_date: string}>('calculate_water_consumption_per_day', {
           start_date: startDate?.toISOString() || new Date(0).toISOString(),
           end_date: endDate?.toISOString() || new Date().toISOString()
         });
