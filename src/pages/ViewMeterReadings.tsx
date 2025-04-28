@@ -8,6 +8,14 @@ import { useQuery } from "@tanstack/react-query";
 import DateRangeFilter from "@/components/DateRangeFilter";
 import StatsCard from "@/components/StatsCard";
 
+interface MeterReading {
+  id: string;  // Changed from number to string since Supabase uses UUID
+  address: string;
+  electricity_reading: number | null;
+  water_reading: number | null;
+  created_at: string;
+}
+
 interface ElectricityStatsResult {
   avg_consumption_per_day: number;
 }
@@ -21,7 +29,7 @@ const ViewMeterReadings = () => {
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
 
-  const { data: readings, isLoading: isLoadingReadings } = useQuery({
+  const { data: readings, isLoading: isLoadingReadings } = useQuery<MeterReading[]>({
     queryKey: ['meter-readings', startDate, endDate],
     queryFn: async () => {
       let query = supabase
