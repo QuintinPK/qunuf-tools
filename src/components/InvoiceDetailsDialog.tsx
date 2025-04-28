@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -45,11 +44,7 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
   }).format(localInvoice.amount);
 
   const handleDownload = () => {
-    if (localInvoice.pdfUrl) {
-      // Handle case where there's a URL to the PDF
-      window.open(localInvoice.pdfUrl, '_blank');
-    } else if (localInvoice.pdfBlob) {
-      // Handle case where there's a Blob object
+    if (localInvoice.pdfBlob) {
       const url = URL.createObjectURL(localInvoice.pdfBlob);
       const a = document.createElement('a');
       a.href = url;
@@ -62,9 +57,7 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
   };
 
   const handleViewOriginal = () => {
-    if (localInvoice.pdfUrl) {
-      window.open(localInvoice.pdfUrl, '_blank');
-    } else if (localInvoice.pdfBlob) {
+    if (localInvoice.pdfBlob) {
       const url = URL.createObjectURL(localInvoice.pdfBlob);
       window.open(url, '_blank');
     }

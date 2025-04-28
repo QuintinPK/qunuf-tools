@@ -172,7 +172,11 @@ const Dashboard = () => {
                   </Tabs>
                 </div>
                 
-                <InvoiceFilter filters={filters} onFilterChange={handleFilterChange} />
+                <InvoiceFilter 
+                  filters={filters} 
+                  onFilterChange={handleFilterChange}
+                  invoices={invoices}
+                />
                 
                 {loading ? (
                   <div className="text-center py-8">Loading invoices...</div>
