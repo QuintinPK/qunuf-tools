@@ -7,10 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import DateRangeFilter from "@/components/DateRangeFilter";
 import StatsCard from "@/components/StatsCard";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { MapPin } from "lucide-react";
-import { Database } from "@/integrations/supabase/types";
+import AddressCheckboxes from "@/components/AddressCheckboxes";
 
 interface MeterReading {
   id: string;
@@ -20,20 +17,14 @@ interface MeterReading {
   created_at: string;
 }
 
-type AddressOption = {
-  address: string;
-  selected: boolean;
-}
-
 const ViewMeterReadings = () => {
   const isMobile = useIsMobile();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
-  const [addresses, setAddresses] = useState<AddressOption[]>([]);
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
 
   // Fetch unique addresses
-  const { data: uniqueAddresses } = useQuery({
+  const { data: addresses = [] } = useQuery({
     queryKey: ['unique-addresses'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -42,27 +33,18 @@ const ViewMeterReadings = () => {
         .order('address', { ascending: true });
 
       if (error) throw error;
-      return data;
+      return data.map(item => item.address);
     }
   });
 
-  // Set up address options when uniqueAddresses data loads
+  // Set up selected addresses when addresses data loads
   useEffect(() => {
-    if (uniqueAddresses) {
-      const options = uniqueAddresses.map(item => ({
-        address: item.address,
-        selected: true
-      }));
-      setAddresses(options);
-      setSelectedAddresses(options.map(option => option.address));
+    if (addresses.length > 0) {
+      setSelectedAddresses(addresses);
     }
-  }, [uniqueAddresses]);
+  }, [addresses]);
 
-  const toggleAddress = (address: string) => {
-    setAddresses(prev => prev.map(item => 
-      item.address === address ? { ...item, selected: !item.selected } : item
-    ));
-    
+  const handleAddressChange = (address: string) => {
     setSelectedAddresses(prev => {
       if (prev.includes(address)) {
         return prev.filter(a => a !== address);
@@ -158,37 +140,11 @@ const ViewMeterReadings = () => {
       </div>
 
       <div className="mb-6">
-        <Card className="p-4">
-          <h2 className="text-lg font-semibold flex items-center mb-3">
-            <MapPin className="mr-2" size={18} />
-            Select Addresses
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {addresses.map((addressOption) => (
-              <div 
-                key={addressOption.address} 
-                className={`
-                  flex items-center space-x-3 p-3 rounded-lg cursor-pointer
-                  border-2 transition-all
-                  ${addressOption.selected ? 'border-primary bg-primary/10' : 'border-gray-200 hover:border-primary/50 hover:bg-primary/5'}
-                `}
-                onClick={() => toggleAddress(addressOption.address)}
-              >
-                <Checkbox 
-                  checked={addressOption.selected}
-                  id={`address-${addressOption.address}`}
-                  className="h-5 w-5"
-                />
-                <Label 
-                  htmlFor={`address-${addressOption.address}`}
-                  className="flex-1 cursor-pointer text-sm font-medium"
-                >
-                  {addressOption.address}
-                </Label>
-              </div>
-            ))}
-          </div>
-        </Card>
+        <AddressCheckboxes
+          addresses={addresses}
+          selectedAddresses={selectedAddresses}
+          onAddressChange={handleAddressChange}
+        />
       </div>
 
       {selectedAddresses.length > 0 && (

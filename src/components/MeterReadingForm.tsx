@@ -75,11 +75,13 @@ const MeterReadingForm = () => {
   };
 
   const handleAddressChange = (address: string) => {
-    setSelectedAddresses(prev => 
-      prev.includes(address) 
-        ? prev.filter(a => a !== address)
-        : [...prev, address]
-    );
+    setSelectedAddresses(prev => {
+      if (prev.includes(address)) {
+        return prev.filter(a => a !== address);
+      } else {
+        return [...prev, address];
+      }
+    });
   };
 
   return (

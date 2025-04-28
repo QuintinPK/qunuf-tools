@@ -11,6 +11,12 @@ interface AddressCheckboxesProps {
 }
 
 const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: AddressCheckboxesProps) => {
+  const handleAddressClick = (address: string, event: React.MouseEvent) => {
+    // Prevent any propagation to avoid multiple clicks
+    event.stopPropagation();
+    onAddressChange(address);
+  };
+
   return (
     <Card className="p-4">
       <h2 className="text-lg font-semibold flex items-center mb-3">
@@ -18,29 +24,37 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
         Select Addresses
       </h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {addresses.map((address) => (
-          <div 
-            key={address} 
-            className={`
-              flex items-center space-x-3 p-3 rounded-lg cursor-pointer
-              border-2 transition-all
-              ${selectedAddresses.includes(address) ? 'border-primary bg-primary/10' : 'border-gray-200 hover:border-primary/50 hover:bg-primary/5'}
-            `}
-            onClick={() => onAddressChange(address)}
-          >
-            <Checkbox 
-              checked={selectedAddresses.includes(address)}
-              id={`address-${address}`}
-              className="h-5 w-5"
-            />
-            <Label 
-              htmlFor={`address-${address}`}
-              className="flex-1 cursor-pointer text-sm font-medium"
+        {addresses.map((address) => {
+          const isSelected = selectedAddresses.includes(address);
+          return (
+            <div 
+              key={address} 
+              className={`
+                flex items-center space-x-3 p-3 rounded-lg cursor-pointer
+                border-2 transition-all
+                ${isSelected ? 'border-primary bg-primary/10' : 'border-gray-200 hover:border-primary/50 hover:bg-primary/5'}
+              `}
+              onClick={(e) => handleAddressClick(address, e)}
+              role="button"
+              tabIndex={0}
+              aria-pressed={isSelected}
             >
-              {address}
-            </Label>
-          </div>
-        ))}
+              <Checkbox 
+                checked={isSelected}
+                id={`address-${address}`}
+                className="h-5 w-5"
+                tabIndex={-1} // Remove from tab order since parent is focusable
+              />
+              <Label 
+                htmlFor={`address-${address}`}
+                className="flex-1 cursor-pointer text-sm font-medium"
+                onClick={(e) => e.stopPropagation()} // Prevent multiple clicks
+              >
+                {address}
+              </Label>
+            </div>
+          );
+        })}
       </div>
     </Card>
   );
