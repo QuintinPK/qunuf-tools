@@ -1,11 +1,10 @@
-
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { FileExport } from "lucide-react";
+import { FileText } from "lucide-react";
 
 const ExportMeterReadings = () => {
   const isMobile = useIsMobile();
@@ -68,7 +67,7 @@ const ExportMeterReadings = () => {
             Download all your meter readings as a CSV file. The file will include address, electricity readings, water readings, and dates.
           </p>
           <Button onClick={handleExport} className="w-full md:w-auto">
-            <FileExport className="mr-2 h-4 w-4" />
+            <FileText className="mr-2 h-4 w-4" />
             Export to CSV
           </Button>
         </div>

@@ -1,9 +1,8 @@
-
 import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Droplet, Nut, Table, FileExport } from "lucide-react";
+import { Droplet, Nut, Table, FileText } from "lucide-react";
 
 const tools = [
   {
@@ -26,7 +25,7 @@ const tools = [
       },
       {
         name: "Export CSV",
-        icon: <FileExport className="h-4 w-4" />,
+        icon: <FileText className="h-4 w-4" />,
         path: "/meter-reading/export"
       }
     ]
