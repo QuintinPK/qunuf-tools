@@ -37,13 +37,18 @@ const ViewMeterReadings = () => {
   const { data: electricityStats, isLoading: isLoadingElectricityStats } = useQuery({
     queryKey: ['electricity-stats', startDate, endDate],
     queryFn: async () => {
+      interface ElectricityStatsResult {
+        avg_consumption_per_day: number;
+      }
+
       const { data, error } = await supabase
-        .rpc('calculate_electricity_consumption_per_day', {
+        .rpc<ElectricityStatsResult>('calculate_electricity_consumption_per_day', {
           start_date: startDate?.toISOString() || new Date(0).toISOString(),
           end_date: endDate?.toISOString() || new Date().toISOString()
         });
+      
       if (error) throw error;
-      return data[0];
+      return data ? data[0] : { avg_consumption_per_day: 0 };
     },
     enabled: Boolean(startDate || endDate)
   });
@@ -51,13 +56,18 @@ const ViewMeterReadings = () => {
   const { data: waterStats, isLoading: isLoadingWaterStats } = useQuery({
     queryKey: ['water-stats', startDate, endDate],
     queryFn: async () => {
+      interface WaterStatsResult {
+        avg_consumption_per_day: number;
+      }
+
       const { data, error } = await supabase
-        .rpc('calculate_water_consumption_per_day', {
+        .rpc<WaterStatsResult>('calculate_water_consumption_per_day', {
           start_date: startDate?.toISOString() || new Date(0).toISOString(),
           end_date: endDate?.toISOString() || new Date().toISOString()
         });
+      
       if (error) throw error;
-      return data[0];
+      return data ? data[0] : { avg_consumption_per_day: 0 };
     },
     enabled: Boolean(startDate || endDate)
   });
