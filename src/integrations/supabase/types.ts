@@ -9,6 +9,21 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      addresses: {
+        Row: {
+          address: string
+          created_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
       invoices: {
         Row: {
           address: string
@@ -59,6 +74,38 @@ export type Database = {
           utility_type?: string | null
         }
         Relationships: []
+      }
+      meter_readings: {
+        Row: {
+          address: string
+          created_at: string
+          electricity_reading: number | null
+          id: string
+          water_reading: number | null
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          electricity_reading?: number | null
+          id?: string
+          water_reading?: number | null
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          electricity_reading?: number | null
+          id?: string
+          water_reading?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_meter_readings_address"
+            columns: ["address"]
+            isOneToOne: false
+            referencedRelation: "addresses"
+            referencedColumns: ["address"]
+          },
+        ]
       }
     }
     Views: {

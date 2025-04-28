@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Droplet } from "lucide-react";
+import { Droplet, InputIcon } from "lucide-react";
 
 const tools = [
   {
@@ -14,7 +14,14 @@ const tools = [
     color: "bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200",
     iconBg: "bg-blue-100"
   },
-  // More tools will be added here in the future
+  {
+    name: "Meter Reading Recorder",
+    description: "Quickly record your electricity and water meter readings",
+    icon: <InputIcon className="h-10 w-10 text-emerald-500" />,
+    path: "/meter-reading",
+    color: "bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200",
+    iconBg: "bg-emerald-100"
+  }
 ];
 
 const Landing = () => {

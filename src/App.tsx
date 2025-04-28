@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/MainLayout";
 import Landing from "./pages/Landing";
 import WebTracker from "./pages/WebTracker";
+import MeterReadingRecorder from "./pages/MeterReadingRecorder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Landing />} />
             <Route path="/web-tracker" element={<WebTracker />} />
+            <Route path="/meter-reading" element={<MeterReadingRecorder />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
