@@ -1,9 +1,12 @@
+
 import React, { useMemo, useState } from 'react';
 import { Invoice } from '@/types/invoice';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, LabelList, ReferenceLine } from 'recharts';
+import { 
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, 
+  Tooltip, ResponsiveContainer, Cell, LabelList, ReferenceLine 
+} from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ChartContainer, ChartTooltip } from './ui/chart';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { format } from 'date-fns';
 
