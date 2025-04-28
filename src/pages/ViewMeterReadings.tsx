@@ -24,7 +24,7 @@ const ViewMeterReadings = () => {
   const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
 
   // Fetch unique addresses
-  const { data: addresses = [] } = useQuery({
+  const { data: addresses = [], isLoading: isLoadingAddresses } = useQuery({
     queryKey: ['unique-addresses'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -39,10 +39,10 @@ const ViewMeterReadings = () => {
 
   // Set up selected addresses when addresses data loads
   useEffect(() => {
-    if (addresses.length > 0) {
+    if (addresses.length > 0 && selectedAddresses.length === 0) {
       setSelectedAddresses(addresses);
     }
-  }, [addresses]);
+  }, [addresses, selectedAddresses.length]);
 
   const handleAddressChange = (address: string) => {
     setSelectedAddresses(prev => {
@@ -81,7 +81,8 @@ const ViewMeterReadings = () => {
       if (error) throw error;
       
       return data as MeterReading[];
-    }
+    },
+    enabled: selectedAddresses.length > 0,
   });
 
   // Calculate statistics for each selected address
@@ -140,11 +141,15 @@ const ViewMeterReadings = () => {
       </div>
 
       <div className="mb-6">
-        <AddressCheckboxes
-          addresses={addresses}
-          selectedAddresses={selectedAddresses}
-          onAddressChange={handleAddressChange}
-        />
+        {isLoadingAddresses ? (
+          <div className="p-4 text-center">Loading addresses...</div>
+        ) : (
+          <AddressCheckboxes
+            addresses={addresses}
+            selectedAddresses={selectedAddresses}
+            onAddressChange={handleAddressChange}
+          />
+        )}
       </div>
 
       {selectedAddresses.length > 0 && (

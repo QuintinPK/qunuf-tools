@@ -20,7 +20,7 @@ const MeterReadingForm = () => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>();
 
   // Fetch unique addresses
-  const { data: addresses = [] } = useQuery({
+  const { data: addresses = [], isLoading } = useQuery({
     queryKey: ['addresses'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -86,11 +86,15 @@ const MeterReadingForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <AddressCheckboxes 
-        addresses={addresses}
-        selectedAddresses={selectedAddresses}
-        onAddressChange={handleAddressChange}
-      />
+      {isLoading ? (
+        <div className="py-4 text-center">Loading addresses...</div>
+      ) : (
+        <AddressCheckboxes 
+          addresses={addresses}
+          selectedAddresses={selectedAddresses}
+          onAddressChange={handleAddressChange}
+        />
+      )}
 
       <Card className="p-4">
         <div className="space-y-4">

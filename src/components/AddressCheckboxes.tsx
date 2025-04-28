@@ -11,9 +11,9 @@ interface AddressCheckboxesProps {
 }
 
 const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: AddressCheckboxesProps) => {
+  // Handle click on the address item
   const handleAddressClick = (address: string, event: React.MouseEvent) => {
-    // Prevent any propagation to avoid multiple clicks
-    event.stopPropagation();
+    event.preventDefault();
     onAddressChange(address);
   };
 
@@ -38,17 +38,24 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
               role="button"
               tabIndex={0}
               aria-pressed={isSelected}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onAddressChange(address);
+                }
+              }}
             >
               <Checkbox 
                 checked={isSelected}
                 id={`address-${address}`}
                 className="h-5 w-5"
                 tabIndex={-1} // Remove from tab order since parent is focusable
+                onCheckedChange={() => null} // This prevents React warnings about changing from uncontrolled to controlled
               />
               <Label 
                 htmlFor={`address-${address}`}
                 className="flex-1 cursor-pointer text-sm font-medium"
-                onClick={(e) => e.stopPropagation()} // Prevent multiple clicks
+                onClick={(e) => e.stopPropagation()} // Only prevent propagation, don't handle checking here
               >
                 {address}
               </Label>
