@@ -33,7 +33,7 @@ const ViewMeterReadings = () => {
     queryKey: ['meter-readings', startDate, endDate],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('meter_readings')
+        .from<MeterReading>('meter_readings')
         .select('*')
         .order('created_at', { ascending: false })
         .gte('created_at', startDate?.toISOString() ?? '1970-01-01')
