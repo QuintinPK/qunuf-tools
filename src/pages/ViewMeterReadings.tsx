@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
@@ -6,6 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import DateRangeFilter from "@/components/DateRangeFilter";
 import StatsCard from "@/components/StatsCard";
+
+interface ElectricityStatsResult {
+  avg_consumption_per_day: number;
+}
+
+interface WaterStatsResult {
+  avg_consumption_per_day: number;
+}
 
 const ViewMeterReadings = () => {
   const isMobile = useIsMobile();
@@ -36,18 +45,16 @@ const ViewMeterReadings = () => {
   const { data: electricityStats, isLoading: isLoadingElectricityStats } = useQuery({
     queryKey: ['electricity-stats', startDate, endDate],
     queryFn: async () => {
-      interface ElectricityStatsResult {
-        avg_consumption_per_day: number;
-      }
+      const params = {
+        start_date: startDate?.toISOString() || new Date(0).toISOString(),
+        end_date: endDate?.toISOString() || new Date().toISOString()
+      };
 
       const { data, error } = await supabase
-        .rpc<ElectricityStatsResult, {start_date: string, end_date: string}>('calculate_electricity_consumption_per_day', {
-          start_date: startDate?.toISOString() || new Date(0).toISOString(),
-          end_date: endDate?.toISOString() || new Date().toISOString()
-        });
+        .rpc('calculate_electricity_consumption_per_day', params);
       
       if (error) throw error;
-      return data ? data[0] : { avg_consumption_per_day: 0 };
+      return (data as any as ElectricityStatsResult[]) ? (data as any as ElectricityStatsResult[])[0] : { avg_consumption_per_day: 0 };
     },
     enabled: Boolean(startDate || endDate)
   });
@@ -55,18 +62,16 @@ const ViewMeterReadings = () => {
   const { data: waterStats, isLoading: isLoadingWaterStats } = useQuery({
     queryKey: ['water-stats', startDate, endDate],
     queryFn: async () => {
-      interface WaterStatsResult {
-        avg_consumption_per_day: number;
-      }
+      const params = {
+        start_date: startDate?.toISOString() || new Date(0).toISOString(),
+        end_date: endDate?.toISOString() || new Date().toISOString()
+      };
 
       const { data, error } = await supabase
-        .rpc<WaterStatsResult, {start_date: string, end_date: string}>('calculate_water_consumption_per_day', {
-          start_date: startDate?.toISOString() || new Date(0).toISOString(),
-          end_date: endDate?.toISOString() || new Date().toISOString()
-        });
+        .rpc('calculate_water_consumption_per_day', params);
       
       if (error) throw error;
-      return data ? data[0] : { avg_consumption_per_day: 0 };
+      return (data as any as WaterStatsResult[]) ? (data as any as WaterStatsResult[])[0] : { avg_consumption_per_day: 0 };
     },
     enabled: Boolean(startDate || endDate)
   });
