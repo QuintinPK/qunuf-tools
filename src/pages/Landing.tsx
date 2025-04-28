@@ -32,7 +32,7 @@ const tools = [
   },
   {
     name: "WEB Tracker",
-    description: "Track your Water, Electricity, and Bills in one place",
+    description: "Track all water and electricity bills in one place",
     icon: <Receipt className="h-10 w-10 text-blue-500" />,
     path: "/web-tracker",
     color: "bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200",
