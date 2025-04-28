@@ -1,10 +1,36 @@
+
 import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Droplet, Nut } from "lucide-react";
+import { Droplet, Nut, Table, FileExport } from "lucide-react";
 
 const tools = [
+  {
+    name: "Meter Reading Recorder",
+    description: "Quickly record your electricity and water meter readings",
+    icon: <Nut className="h-10 w-10 text-emerald-500" />,
+    path: "/meter-reading",
+    color: "bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200",
+    iconBg: "bg-emerald-100",
+    actions: [
+      {
+        name: "Record Reading",
+        icon: <Nut className="h-4 w-4" />,
+        path: "/meter-reading"
+      },
+      {
+        name: "View Data",
+        icon: <Table className="h-4 w-4" />,
+        path: "/meter-reading/view"
+      },
+      {
+        name: "Export CSV",
+        icon: <FileExport className="h-4 w-4" />,
+        path: "/meter-reading/export"
+      }
+    ]
+  },
   {
     name: "WEB Tracker",
     description: "Track your Water, Electricity, and Bills in one place",
@@ -12,14 +38,6 @@ const tools = [
     path: "/web-tracker",
     color: "bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200",
     iconBg: "bg-blue-100"
-  },
-  {
-    name: "Meter Reading Recorder",
-    description: "Quickly record your electricity and water meter readings",
-    icon: <Nut className="h-10 w-10 text-emerald-500" />,
-    path: "/meter-reading",
-    color: "bg-gradient-to-br from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200",
-    iconBg: "bg-emerald-100"
   }
 ];
 
@@ -36,25 +54,45 @@ const Landing = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {tools.map((tool) => (
-            <Link to={tool.path} key={tool.name} className="block no-underline">
-              <Card className={`h-full transition-all duration-300 hover:shadow-lg ${tool.color}`}>
-                <CardHeader>
-                  <div className={`${tool.iconBg} w-16 h-16 rounded-full flex items-center justify-center mb-4`}>
-                    {tool.icon}
+            <Card key={tool.name} className={`h-full transition-all duration-300 hover:shadow-lg ${tool.color}`}>
+              <CardHeader>
+                <div className={`${tool.iconBg} w-16 h-16 rounded-full flex items-center justify-center mb-4`}>
+                  {tool.icon}
+                </div>
+                <CardTitle>{tool.name}</CardTitle>
+                <CardDescription>{tool.description}</CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow">
+                {tool.actions && (
+                  <div className="space-y-2">
+                    {tool.actions.map((action) => (
+                      <Link 
+                        key={action.name}
+                        to={action.path}
+                        className="block no-underline"
+                      >
+                        <Button 
+                          variant="secondary" 
+                          className="w-full justify-start"
+                        >
+                          {action.icon}
+                          {action.name}
+                        </Button>
+                      </Link>
+                    ))}
                   </div>
-                  <CardTitle>{tool.name}</CardTitle>
-                  <CardDescription>{tool.description}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  {/* Additional content can be added here */}
-                </CardContent>
+                )}
+              </CardContent>
+              {!tool.actions && (
                 <CardFooter>
-                  <Button variant="secondary" className="w-full">
-                    Launch Tool
-                  </Button>
+                  <Link to={tool.path} className="block w-full no-underline">
+                    <Button variant="secondary" className="w-full">
+                      Launch Tool
+                    </Button>
+                  </Link>
                 </CardFooter>
-              </Card>
-            </Link>
+              )}
+            </Card>
           ))}
         </div>
         

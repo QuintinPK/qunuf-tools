@@ -12,14 +12,17 @@ export type Database = {
       addresses: {
         Row: {
           address: string
+          address_label: string | null
           created_at: string
         }
         Insert: {
           address: string
+          address_label?: string | null
           created_at?: string
         }
         Update: {
           address?: string
+          address_label?: string | null
           created_at?: string
         }
         Relationships: []
