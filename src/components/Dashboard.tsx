@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Invoice } from '@/types/invoice';
@@ -145,10 +146,12 @@ const Dashboard = () => {
       return true;
     })
     .sort((a, b) => {
-      const addressComparison = a.address.localeCompare(b.address);
-      if (addressComparison !== 0) return addressComparison;
+      // First sort by invoice date (newest to oldest)
+      const dateComparison = new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime();
+      if (dateComparison !== 0) return dateComparison;
       
-      return new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime();
+      // Then sort by address
+      return a.address.localeCompare(b.address);
     });
 
   return (
