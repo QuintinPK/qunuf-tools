@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -39,7 +40,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
   onViewDetails, 
   onTogglePaid,
 }) => {
-  const { utilityType, address, invoiceNumber, invoiceDate, amount, isPaid } = invoice;
+  const { utilityType, address, invoiceNumber, invoiceDate, dueDate, amount, isPaid } = invoice;
   
   const formattedAmount = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -73,6 +74,9 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
         <div className="grid grid-cols-2 gap-1 text-sm">
           <span className="text-muted-foreground">Invoice Date:</span>
           <span className="font-medium">{invoiceDate}</span>
+          
+          <span className="text-muted-foreground">Due Date:</span>
+          <span className="font-medium">{dueDate}</span>
           
           <span className="text-muted-foreground">Amount:</span>
           <span className={cn(

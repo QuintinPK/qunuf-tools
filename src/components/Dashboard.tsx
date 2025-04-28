@@ -124,7 +124,7 @@ const Dashboard = () => {
     setFilters(newFilters);
   };
 
-  const filteredInvoices = invoices
+  const filteredAndSortedInvoices = invoices
     .filter(invoice => {
       if (filters.address && !invoice.address.toLowerCase().includes(filters.address.toLowerCase())) {
         return false;
@@ -144,7 +144,12 @@ const Dashboard = () => {
       
       return true;
     })
-    .sort((a, b) => new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime());
+    .sort((a, b) => {
+      const addressComparison = a.address.localeCompare(b.address);
+      if (addressComparison !== 0) return addressComparison;
+      
+      return new Date(b.invoiceDate).getTime() - new Date(a.invoiceDate).getTime();
+    });
 
   return (
     <div className="container mx-auto p-4 max-w-5xl">
@@ -196,32 +201,21 @@ const Dashboard = () => {
                 
                 {loading ? (
                   <div className="text-center py-8">Loading invoices...</div>
-                ) : filteredInvoices.length === 0 ? (
+                ) : filteredAndSortedInvoices.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     No invoices found. Upload your first invoice to get started.
                   </div>
                 ) : (
                   <>
-                    {viewType === 'grid' ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-                        {filteredInvoices.map(invoice => (
-                          <InvoiceCard 
-                            key={invoice.id}
-                            invoice={invoice}
-                            onViewDetails={handleViewDetails}
-                            onTogglePaid={handleTogglePaid}
-                            onDelete={handleDeleteInvoice}
-                          />
-                        ))}
-                      </div>
-                    ) : (
+                    {viewType === 'list' ? (
                       <Table className="mt-6">
                         <TableHeader>
                           <TableRow>
                             <TableHead>Invoice #</TableHead>
                             <TableHead>Address</TableHead>
                             <TableHead>Type</TableHead>
-                            <TableHead>Date</TableHead>
+                            <TableHead>Invoice Date</TableHead>
+                            <TableHead>Due Date</TableHead>
                             <TableHead>Amount</TableHead>
                             <TableHead>vs. Average</TableHead>
                             <TableHead>Status</TableHead>
@@ -229,7 +223,7 @@ const Dashboard = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredInvoices.map(invoice => (
+                          {filteredAndSortedInvoices.map(invoice => (
                             <TableRow key={invoice.id}>
                               <TableCell>{invoice.invoiceNumber}</TableCell>
                               <TableCell>{invoice.address}</TableCell>
@@ -239,6 +233,7 @@ const Dashboard = () => {
                                 </span>
                               </TableCell>
                               <TableCell>{invoice.invoiceDate}</TableCell>
+                              <TableCell>{invoice.dueDate}</TableCell>
                               <TableCell>${invoice.amount.toFixed(2)}</TableCell>
                               <TableCell>
                                 <PercentageDifference 
@@ -264,6 +259,18 @@ const Dashboard = () => {
                           ))}
                         </TableBody>
                       </Table>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+                        {filteredAndSortedInvoices.map(invoice => (
+                          <InvoiceCard 
+                            key={invoice.id}
+                            invoice={invoice}
+                            onViewDetails={handleViewDetails}
+                            onTogglePaid={handleTogglePaid}
+                            onDelete={handleDeleteInvoice}
+                          />
+                        ))}
+                      </div>
                     )}
                   </>
                 )}
