@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Download, CheckCircle2, XCircle, Trash2, ExternalLink } from 'lucide-react';
 import { Invoice } from '@/types/invoice';
 import { cn } from '@/lib/utils';
-import { format, parse } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 interface InvoiceDetailsDialogProps {
   invoice: Invoice | null;
@@ -34,7 +34,7 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
   useEffect(() => {
     if (invoice) {
       setLocalInvoice({...invoice});
-      setSelectedDate(invoice.paymentDate ? new Date(invoice.paymentDate) : undefined);
+      setSelectedDate(invoice.paymentDate ? parseISO(invoice.paymentDate) : undefined);
     }
   }, [invoice]);
 
@@ -95,10 +95,13 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
     }
   };
 
+  // This function correctly formats dates from the database
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     try {
-      const date = new Date(dateString);
+      // Parse the date string using parseISO to correctly handle the ISO format
+      // This fixes the timezone issue causing dates to appear one day earlier
+      const date = parseISO(dateString);
       return format(date, 'yyyy-MM-dd');
     } catch (error) {
       console.error("Error formatting date:", error);
