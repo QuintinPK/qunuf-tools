@@ -10,7 +10,8 @@ interface AddressCheckboxesProps {
 }
 
 const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: AddressCheckboxesProps) => {
-  const handleToggle = (address: string) => {
+  const handleToggle = (address: string, e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation();
     onAddressChange(address);
   };
 
@@ -31,14 +32,15 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
                 border-2 transition-all
                 ${isSelected ? 'border-primary bg-primary/10' : 'border-gray-200 hover:border-primary/50 hover:bg-primary/5'}
               `}
-              onClick={() => handleToggle(address)}
+              onClick={(e) => handleToggle(address, e)}
               role="button"
               tabIndex={0}
               aria-pressed={isSelected}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  handleToggle(address);
+                  e.stopPropagation();
+                  handleToggle(address, e);
                 }
               }}
             >
@@ -47,6 +49,7 @@ const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: Ad
                 id={`address-${address}`}
                 className="h-5 w-5 pointer-events-none"
                 tabIndex={-1}
+                aria-checked={isSelected}
               />
               <Label
                 htmlFor={`address-${address}`}
