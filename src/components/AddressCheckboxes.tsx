@@ -11,7 +11,7 @@ interface AddressCheckboxesProps {
 
 const AddressCheckboxes = ({ addresses, selectedAddresses, onAddressChange }: AddressCheckboxesProps) => {
   const handleToggle = (address: string, e: React.MouseEvent | React.KeyboardEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent event bubbling to avoid Checkbox internal updates
     onAddressChange(address);
   };
 
