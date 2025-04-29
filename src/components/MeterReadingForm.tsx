@@ -1,5 +1,4 @@
-
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,8 +73,9 @@ const MeterReadingForm = () => {
     }
   };
 
-  // Simple handler for toggling address selection
-  const handleAddressChange = (address: string) => {
+  // Memoized handler for toggling address selection
+  const handleAddressChange = useCallback((address: string) => {
+    console.log('Toggling address:', address); // Debug to ensure no excessive calls
     setSelectedAddresses(prev => {
       if (prev.includes(address)) {
         return prev.filter(a => a !== address);
@@ -83,7 +83,7 @@ const MeterReadingForm = () => {
         return [...prev, address];
       }
     });
-  };
+  }, []); // Empty deps since setSelectedAddresses is stable
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
