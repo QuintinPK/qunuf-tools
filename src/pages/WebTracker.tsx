@@ -9,7 +9,7 @@ const WebTracker = () => {
   return (
     <div className={`${isMobile ? 'px-2 py-4' : 'container mx-auto py-8 px-4'}`}>
       <h1 className="text-3xl font-bold mb-6">WEB Tracker</h1>
-      <p className="text-muted-foreground mb-8">Track your Water, Electricity, and Bills all in one place</p>
+      <p className="text-muted-foreground mb-8">Track your Water & Electricity bills all in one place</p>
       <Dashboard />
     </div>
   );
