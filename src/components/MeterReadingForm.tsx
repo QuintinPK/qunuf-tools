@@ -1,3 +1,4 @@
+// MeterReadingForm.tsx
 import React, { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ interface FormData {
 
 const MeterReadingForm = () => {
   const { toast } = useToast();
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null); // Changed to single string or null
   const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>();
 
   // Fetch unique addresses
@@ -33,57 +34,48 @@ const MeterReadingForm = () => {
   });
 
   const onSubmit = async (data: FormData) => {
-    if (selectedAddresses.length === 0) {
+    if (!selectedAddress) {
       toast({
         title: "Error",
-        description: "Please select at least one address",
+        description: "Please select an address",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      const promises = selectedAddresses.map(address => 
-        supabase
-          .from('meter_readings')
-          .insert([
-            {
-              address,
-              electricity_reading: data.electricityReading,
-              water_reading: data.waterReading,
-            }
-          ])
-      );
-
-      await Promise.all(promises);
+      // Insert a single meter reading for the selected address
+      await supabase
+        .from('meter_readings')
+        .insert([
+          {
+            address: selectedAddress,
+            electricity_reading: data.electricityReading,
+            water_reading: data.waterReading,
+          }
+        ]);
 
       toast({
         title: "Success",
-        description: "Meter readings recorded successfully",
+        description: "Meter reading recorded successfully",
       });
 
       reset();
-      setSelectedAddresses([]);
+      setSelectedAddress(null); // Clear selection after submission
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to record meter readings",
+        description: "Failed to record meter reading",
         variant: "destructive"
       });
     }
   };
 
   // Memoized handler for toggling address selection
-  const handleAddressChange = useCallback((address: string) => {
-    console.log('Toggling address:', address); // Debug to ensure no excessive calls
-    setSelectedAddresses(prev => {
-      if (prev.includes(address)) {
-        return prev.filter(a => a !== address);
-      } else {
-        return [...prev, address];
-      }
-    });
-  }, []); // Empty deps since setSelectedAddresses is stable
+  const handleAddressChange = useCallback((address: string | null) => {
+    console.log('Setting address:', address); // Debug to ensure correct behavior
+    setSelectedAddress(address); // Set the new address or clear selection
+  }, []); // Empty deps since setSelectedAddress is stable
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -92,7 +84,7 @@ const MeterReadingForm = () => {
       ) : (
         <AddressCheckboxes 
           addresses={addresses}
-          selectedAddresses={selectedAddresses}
+          selectedAddress={selectedAddress} // Changed prop name
           onAddressChange={handleAddressChange}
         />
       )}
@@ -126,7 +118,7 @@ const MeterReadingForm = () => {
           </div>
 
           <Button type="submit" className="w-full">
-            Submit Readings
+            Submit Reading
           </Button>
         </div>
       </Card>
