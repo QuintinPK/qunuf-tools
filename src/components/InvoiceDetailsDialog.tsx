@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, A
 import { Download, CheckCircle2, XCircle, Trash2, ExternalLink } from 'lucide-react';
 import { Invoice } from '@/types/invoice';
 import { cn } from '@/lib/utils';
+import { format, parse } from 'date-fns';
 
 interface InvoiceDetailsDialogProps {
   invoice: Invoice | null;
@@ -93,6 +95,17 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
     }
   };
 
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      return format(date, 'yyyy-MM-dd');
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateString;
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,16 +145,13 @@ const InvoiceDetailsDialog: React.FC<InvoiceDetailsDialogProps> = ({
               "text-sm font-bold",
               localInvoice?.isPaid ? "line-through opacity-70" : ""
             )}>
-              {localInvoice && new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: 'USD',
-              }).format(localInvoice.amount)}
+              {formattedAmount}
             </div>
 
             {localInvoice?.isPaid && localInvoice.paymentDate && (
               <>
                 <div className="text-sm font-medium">Payment Date:</div>
-                <div className="text-sm">{new Date(localInvoice.paymentDate).toLocaleDateString()}</div>
+                <div className="text-sm">{formatDate(localInvoice.paymentDate)}</div>
               </>
             )}
           </div>
