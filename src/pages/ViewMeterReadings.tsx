@@ -21,7 +21,7 @@ const ViewMeterReadings = () => {
   const isMobile = useIsMobile();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
-  const [selectedAddresses, setSelectedAddresses] = useState<string[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
 
   // Fetch unique addresses
   const { data: addresses = [], isLoading: isLoadingAddresses } = useQuery({
@@ -37,27 +37,21 @@ const ViewMeterReadings = () => {
     }
   });
 
-  // Set up selected addresses when addresses data loads
-    useEffect(() => {
-      if (addresses.length > 0) {
-        setSelectedAddresses(addresses);
-      }
-    }, [addresses]);
+  // Setup selected addresses when addresses data loads
+  useEffect(() => {
+    if (addresses.length > 0 && !selectedAddress) {
+      setSelectedAddress(addresses[0]);
+    }
+  }, [addresses, selectedAddress]);
 
-  // Simple handler for toggling address selection
-  const handleAddressChange = (address: string) => {
-    setSelectedAddresses(prev => {
-      if (prev.includes(address)) {
-        return prev.filter(a => a !== address);
-      } else {
-        return [...prev, address];
-      }
-    });
+  // Simple handler for address selection
+  const handleAddressChange = (address: string | null) => {
+    setSelectedAddress(address);
   };
 
   // Fetch meter readings
   const { data: readings, isLoading: isLoadingReadings } = useQuery<MeterReading[]>({
-    queryKey: ['meter-readings', startDate, endDate, selectedAddresses],
+    queryKey: ['meter-readings', startDate, endDate, selectedAddress],
     queryFn: async () => {
       let query = supabase
         .from('meter_readings')
@@ -73,9 +67,9 @@ const ViewMeterReadings = () => {
         query = query.lte('created_at', endDate.toISOString());
       }
 
-      // Filter by selected addresses
-      if (selectedAddresses.length > 0) {
-        query = query.in('address', selectedAddresses);
+      // Filter by selected address
+      if (selectedAddress) {
+        query = query.eq('address', selectedAddress);
       }
 
       const { data, error } = await query;
@@ -83,21 +77,17 @@ const ViewMeterReadings = () => {
       
       return data as MeterReading[];
     },
-    enabled: selectedAddresses.length > 0,
+    enabled: !!selectedAddress,
   });
 
-  // Calculate statistics for each selected address
-  const calculateStats = (address: string, utilityType: 'electricity' | 'water') => {
-    if (!readings || !readings.length) {
+  // Calculate statistics for the selected address
+  const calculateStats = (utilityType: 'electricity' | 'water') => {
+    if (!readings || !readings.length || !selectedAddress) {
       return { avg_consumption_per_day: 0 };
     }
 
-    // Filter readings for the specific address
-    const addressReadings = readings.filter(r => r.address === address);
-    if (addressReadings.length < 2) return { avg_consumption_per_day: 0 };
-
     // Sort readings by date (oldest first)
-    const sortedReadings = [...addressReadings].sort(
+    const sortedReadings = [...readings].sort(
       (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
 
@@ -147,28 +137,24 @@ const ViewMeterReadings = () => {
         ) : (
           <AddressCheckboxes
             addresses={addresses}
-            selectedAddresses={selectedAddresses}
+            selectedAddress={selectedAddress}
             onAddressChange={handleAddressChange}
           />
         )}
       </div>
 
-      {selectedAddresses.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-          {selectedAddresses.map(address => (
-            <React.Fragment key={`stats-${address}`}>
-              <StatsCard
-                title={`Electricity (${address})`}
-                value={calculateStats(address, 'electricity').avg_consumption_per_day.toFixed(2) || "0.00"}
-                isLoading={isLoadingReadings}
-              />
-              <StatsCard
-                title={`Water (${address})`}
-                value={calculateStats(address, 'water').avg_consumption_per_day.toFixed(2) || "0.00"}
-                isLoading={isLoadingReadings}
-              />
-            </React.Fragment>
-          ))}
+      {selectedAddress && (
+        <div className="grid gap-4 md:grid-cols-2 mb-6">
+          <StatsCard
+            title={`Electricity (${selectedAddress})`}
+            value={calculateStats('electricity').avg_consumption_per_day.toFixed(2) || "0.00"}
+            isLoading={isLoadingReadings}
+          />
+          <StatsCard
+            title={`Water (${selectedAddress})`}
+            value={calculateStats('water').avg_consumption_per_day.toFixed(2) || "0.00"}
+            isLoading={isLoadingReadings}
+          />
         </div>
       )}
 
