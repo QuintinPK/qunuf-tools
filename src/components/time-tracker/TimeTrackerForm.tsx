@@ -15,6 +15,7 @@ interface TimeTrackerFormProps {
 }
 
 const CATEGORIES = ["Cleaning", "Maintenance", "Check-in", "Check-out", "Other"];
+const STORAGE_KEY = "activeTimeTrackerSession";
 
 const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
   const [isActive, setIsActive] = useState(false);
@@ -24,6 +25,21 @@ const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
   const [notes, setNotes] = useState("");
   const [currentTimer, setCurrentTimer] = useState("00:00:00");
   const [intervalId, setIntervalId] = useState<number | null>(null);
+
+  // Load active session from localStorage on component mount
+  useEffect(() => {
+    const savedSession = localStorage.getItem(STORAGE_KEY);
+    if (savedSession) {
+      const { startTimeStr, category: savedCategory, customCategory: savedCustomCategory, notes: savedNotes } = JSON.parse(savedSession);
+      
+      const parsedStartTime = new Date(startTimeStr);
+      setStartTime(parsedStartTime);
+      setCategory(savedCategory);
+      setCustomCategory(savedCustomCategory || "");
+      setNotes(savedNotes || "");
+      setIsActive(true);
+    }
+  }, []);
 
   // Update timer display when session is active
   useEffect(() => {
@@ -43,6 +59,21 @@ const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
       return () => clearInterval(id);
     }
   }, [isActive, startTime]);
+
+  // Save active session to localStorage whenever it changes
+  useEffect(() => {
+    if (isActive && startTime) {
+      const sessionData = {
+        startTimeStr: startTime.toISOString(),
+        category,
+        customCategory: customCategory || null,
+        notes: notes || null
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
+    } else if (!isActive) {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }, [isActive, startTime, category, customCategory, notes]);
 
   const handleStart = () => {
     const now = new Date();
@@ -77,13 +108,14 @@ const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
     
     onAddSession(newSession);
     
-    // Reset form
+    // Reset form and remove from localStorage
     setIsActive(false);
     setStartTime(null);
     setCurrentTimer("00:00:00");
     setCategory("");
     setCustomCategory("");
     setNotes("");
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   const handleCancel = () => {
@@ -95,6 +127,7 @@ const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
     setIsActive(false);
     setStartTime(null);
     setCurrentTimer("00:00:00");
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (
