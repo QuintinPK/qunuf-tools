@@ -14,7 +14,7 @@ interface TimeTrackerFormProps {
   onAddSession: (session: Omit<TimeTrackerSession, 'id' | 'created_at' | 'updated_at'>) => void;
 }
 
-const CATEGORIES = ["Cleaning", "Maintenance", "Check-in", "Check-out", "Other"];
+const CATEGORIES = ["Preparation", "Maintenance", "Check-in", "Check-out", "Other"];
 const STORAGE_KEY = "activeTimeTrackerSession";
 
 const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
