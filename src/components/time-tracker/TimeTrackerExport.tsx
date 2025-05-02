@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { format, parseISO, startOfMonth, endOfMonth, differenceInMinutes } from "date-fns";
 import { Button } from "@/components/ui/button";
@@ -11,6 +10,11 @@ import { Download } from "lucide-react";
 interface TimeTrackerExportProps {
   sessions: TimeTrackerSession[];
   isLoading: boolean;
+}
+
+// Add type definition for Microsoft's msSaveBlob
+interface MSNavigator extends Navigator {
+  msSaveBlob?: (blob: Blob, defaultName: string) => boolean;
 }
 
 const TimeTrackerExport: React.FC<TimeTrackerExportProps> = ({ sessions, isLoading }) => {
@@ -69,9 +73,12 @@ const TimeTrackerExport: React.FC<TimeTrackerExportProps> = ({ sessions, isLoadi
       ? `time-tracking-${exportMonth}.csv` 
       : "time-tracking-export.csv";
     
-    if (navigator.msSaveBlob) {
+    // Cast the navigator to our extended MSNavigator type
+    const msNavigator = navigator as MSNavigator;
+    
+    if (msNavigator.msSaveBlob) {
       // IE 10+
-      navigator.msSaveBlob(blob, fileName);
+      msNavigator.msSaveBlob(blob, fileName);
     } else {
       const url = URL.createObjectURL(blob);
       link.href = url;
