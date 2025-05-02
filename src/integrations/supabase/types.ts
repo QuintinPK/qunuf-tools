@@ -110,6 +110,39 @@ export type Database = {
           },
         ]
       }
+      time_tracking_sessions: {
+        Row: {
+          category: string
+          created_at: string
+          custom_category: string | null
+          end_time: string | null
+          id: string
+          notes: string | null
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          custom_category?: string | null
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          custom_category?: string | null
+          end_time?: string | null
+          id?: string
+          notes?: string | null
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

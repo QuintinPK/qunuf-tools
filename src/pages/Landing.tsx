@@ -1,8 +1,9 @@
+
 import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Droplet, Receipt, Table, FileText, NotebookPen } from "lucide-react";
+import { Droplet, Receipt, Table, FileText, NotebookPen, Clock } from "lucide-react";
 
 const tools = [
   {
@@ -37,6 +38,14 @@ const tools = [
     path: "/web-tracker",
     color: "bg-gradient-to-br from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200",
     iconBg: "bg-blue-100"
+  },
+  {
+    name: "Time Tracker",
+    description: "Track time spent managing your Airbnbs",
+    icon: <Clock className="h-10 w-10 text-purple-500" />,
+    path: "/time-tracker",
+    color: "bg-gradient-to-br from-purple-50 to-purple-100 hover:from-purple-100 hover:to-purple-200",
+    iconBg: "bg-purple-100"
   }
 ];
 
