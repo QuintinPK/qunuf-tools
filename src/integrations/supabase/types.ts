@@ -143,6 +143,39 @@ export type Database = {
         }
         Relationships: []
       }
+      utility_prices: {
+        Row: {
+          created_at: string
+          currency: string
+          effective_from: string
+          effective_until: string | null
+          id: string
+          price_per_unit: number
+          unit_name: string
+          utility_type: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          effective_from: string
+          effective_until?: string | null
+          id?: string
+          price_per_unit: number
+          unit_name: string
+          utility_type: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          effective_from?: string
+          effective_until?: string | null
+          id?: string
+          price_per_unit?: number
+          unit_name?: string
+          utility_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

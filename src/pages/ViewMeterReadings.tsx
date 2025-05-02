@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useFetchUtilityPrice } from "@/hooks/use-utility-prices";
 
 interface MeterReading {
   id: string;
@@ -31,6 +32,13 @@ interface MeterReading {
   electricity_reading: number | null;
   water_reading: number | null;
   created_at: string;
+}
+
+interface CalculationResult {
+  avg_consumption_per_day: number;
+  estimated_cost_per_month?: number;
+  price_per_unit?: number;
+  unit_name?: string;
 }
 
 const ViewMeterReadings = () => {
@@ -46,6 +54,10 @@ const ViewMeterReadings = () => {
   const [currentReading, setCurrentReading] = useState<MeterReading | null>(null);
   const [editElectricityReading, setEditElectricityReading] = useState<number | null>(null);
   const [editWaterReading, setEditWaterReading] = useState<number | null>(null);
+
+  // Fetch utility prices
+  const { data: electricityPrice } = useFetchUtilityPrice('electricity');
+  const { data: waterPrice } = useFetchUtilityPrice('water');
 
   // Fetch unique addresses
   const { data: addresses = [], isLoading: isLoadingAddresses } = useQuery({
@@ -105,7 +117,7 @@ const ViewMeterReadings = () => {
   });
 
   // Calculate statistics for the selected address
-  const calculateStats = (utilityType: 'electricity' | 'water') => {
+  const calculateStats = (utilityType: 'electricity' | 'water'): CalculationResult => {
     if (!readings || !readings.length || !selectedAddress) {
       return { avg_consumption_per_day: 0 };
     }
@@ -138,6 +150,21 @@ const ViewMeterReadings = () => {
     // Calculate daily average consumption
     const totalConsumption = lastValue - firstValue;
     const avgConsumption = totalConsumption / daysDiff;
+    
+    // Calculate cost if price data is available
+    const currentPrice = utilityType === 'electricity' ? electricityPrice : waterPrice;
+    
+    if (currentPrice) {
+      // Estimate monthly cost (30 days)
+      const estimatedCostPerMonth = avgConsumption * 30 * currentPrice.price_per_unit;
+      
+      return { 
+        avg_consumption_per_day: avgConsumption,
+        estimated_cost_per_month: estimatedCostPerMonth,
+        price_per_unit: currentPrice.price_per_unit,
+        unit_name: currentPrice.unit_name
+      };
+    }
     
     return { avg_consumption_per_day: avgConsumption };
   };
@@ -219,6 +246,9 @@ const ViewMeterReadings = () => {
     }
   };
 
+  const electricityStats = calculateStats('electricity');
+  const waterStats = calculateStats('water');
+
   return (
     <div className={`${isMobile ? 'px-2 py-4' : 'container mx-auto py-8 px-4'}`}>
       <h1 className="text-3xl font-bold mb-6">View Meter Readings</h1>
@@ -248,13 +278,19 @@ const ViewMeterReadings = () => {
         <div className="grid gap-4 md:grid-cols-2 mb-6">
           <StatsCard
             title={`Electricity (${selectedAddress})`}
-            value={calculateStats('electricity').avg_consumption_per_day.toFixed(2) || "0.00"}
+            value={`${electricityStats.avg_consumption_per_day.toFixed(2) || "0.00"} ${electricityStats.unit_name || 'kWh'}/day`}
             isLoading={isLoadingReadings}
+            subtitle={electricityStats.estimated_cost_per_month ? 
+              `Est. monthly cost: $${electricityStats.estimated_cost_per_month.toFixed(2)}` : 
+              undefined}
           />
           <StatsCard
             title={`Water (${selectedAddress})`}
-            value={calculateStats('water').avg_consumption_per_day.toFixed(2) || "0.00"}
+            value={`${waterStats.avg_consumption_per_day.toFixed(2) || "0.00"} ${waterStats.unit_name || 'm³'}/day`}
             isLoading={isLoadingReadings}
+            subtitle={waterStats.estimated_cost_per_month ? 
+              `Est. monthly cost: $${waterStats.estimated_cost_per_month.toFixed(2)}` : 
+              undefined}
           />
         </div>
       )}

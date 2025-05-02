@@ -12,6 +12,7 @@ import ViewMeterReadings from "./pages/ViewMeterReadings";
 import ExportMeterReadings from "./pages/ExportMeterReadings";
 import TimeTracker from "./pages/TimeTracker";
 import NotFound from "./pages/NotFound";
+import UtilityPrices from "./pages/UtilityPrices";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/meter-reading" element={<MeterReadingRecorder />} />
             <Route path="/meter-reading/view" element={<ViewMeterReadings />} />
             <Route path="/meter-reading/export" element={<ExportMeterReadings />} />
+            <Route path="/meter-reading/utility-prices" element={<UtilityPrices />} />
             <Route path="/time-tracker" element={<TimeTracker />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
