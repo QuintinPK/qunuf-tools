@@ -8,6 +8,22 @@ import { useQuery } from "@tanstack/react-query";
 import DateRangeFilter from "@/components/DateRangeFilter";
 import StatsCard from "@/components/StatsCard";
 import AddressCheckboxes from "@/components/AddressCheckboxes";
+import { Button } from "@/components/ui/button";
+import { Edit, Trash2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface MeterReading {
   id: string;
@@ -19,9 +35,17 @@ interface MeterReading {
 
 const ViewMeterReadings = () => {
   const isMobile = useIsMobile();
+  const { toast } = useToast();
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  
+  // Add state for editing functionality
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [currentReading, setCurrentReading] = useState<MeterReading | null>(null);
+  const [editElectricityReading, setEditElectricityReading] = useState<number | null>(null);
+  const [editWaterReading, setEditWaterReading] = useState<number | null>(null);
 
   // Fetch unique addresses
   const { data: addresses = [], isLoading: isLoadingAddresses } = useQuery({
@@ -49,8 +73,8 @@ const ViewMeterReadings = () => {
     setSelectedAddress(address);
   };
 
-  // Fetch meter readings
-  const { data: readings, isLoading: isLoadingReadings } = useQuery<MeterReading[]>({
+  // Fetch meter readings with refetch function
+  const { data: readings, isLoading: isLoadingReadings, refetch } = useQuery<MeterReading[]>({
     queryKey: ['meter-readings', startDate, endDate, selectedAddress],
     queryFn: async () => {
       let query = supabase
@@ -118,6 +142,83 @@ const ViewMeterReadings = () => {
     return { avg_consumption_per_day: avgConsumption };
   };
 
+  // Handle edit button click
+  const handleEditClick = (reading: MeterReading) => {
+    setCurrentReading(reading);
+    setEditElectricityReading(reading.electricity_reading);
+    setEditWaterReading(reading.water_reading);
+    setIsEditDialogOpen(true);
+  };
+
+  // Handle delete button click
+  const handleDeleteClick = (reading: MeterReading) => {
+    setCurrentReading(reading);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Handle save edit
+  const handleSaveEdit = async () => {
+    if (!currentReading) return;
+
+    try {
+      const { error } = await supabase
+        .from('meter_readings')
+        .update({
+          electricity_reading: editElectricityReading,
+          water_reading: editWaterReading
+        })
+        .eq('id', currentReading.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Meter reading updated successfully",
+      });
+      
+      // Refresh the data
+      refetch();
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error("Error updating meter reading:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update meter reading",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle confirm delete
+  const handleConfirmDelete = async () => {
+    if (!currentReading) return;
+
+    try {
+      const { error } = await supabase
+        .from('meter_readings')
+        .delete()
+        .eq('id', currentReading.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Meter reading deleted successfully",
+      });
+      
+      // Refresh the data
+      refetch();
+      setIsDeleteDialogOpen(false);
+    } catch (error) {
+      console.error("Error deleting meter reading:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete meter reading",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className={`${isMobile ? 'px-2 py-4' : 'container mx-auto py-8 px-4'}`}>
       <h1 className="text-3xl font-bold mb-6">View Meter Readings</h1>
@@ -169,6 +270,7 @@ const ViewMeterReadings = () => {
                 <TableHead>Electricity Reading</TableHead>
                 <TableHead>Water Reading</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -178,12 +280,87 @@ const ViewMeterReadings = () => {
                   <TableCell>{reading.electricity_reading || '-'}</TableCell>
                   <TableCell>{reading.water_reading || '-'}</TableCell>
                   <TableCell>{new Date(reading.created_at).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditClick(reading)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteClick(reading)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         )}
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Meter Reading</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="electricity">Electricity Reading</Label>
+              <Input
+                id="electricity"
+                type="number"
+                value={editElectricityReading !== null ? editElectricityReading : ''}
+                onChange={(e) => setEditElectricityReading(e.target.value ? Number(e.target.value) : null)}
+                placeholder="Enter electricity reading"
+                step="0.01"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="water">Water Reading</Label>
+              <Input
+                id="water"
+                type="number"
+                value={editWaterReading !== null ? editWaterReading : ''}
+                onChange={(e) => setEditWaterReading(e.target.value ? Number(e.target.value) : null)}
+                placeholder="Enter water reading"
+                step="0.01"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the meter reading.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
