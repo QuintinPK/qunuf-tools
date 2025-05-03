@@ -3,7 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Droplet, Receipt, Table, FileText, NotebookPen, Clock } from "lucide-react";
+import { Droplet, Receipt, Table, FileText, NotebookPen, Clock, Tag } from "lucide-react";
 
 const tools = [
   {
@@ -28,6 +28,11 @@ const tools = [
         name: "Export CSV",
         icon: <FileText className="h-4 w-4" />,
         path: "/meter-reading/export"
+      },
+      {
+        name: "Utility Prices",
+        icon: <Tag className="h-4 w-4" />,
+        path: "/meter-reading/utility-prices"
       }
     ]
   },
