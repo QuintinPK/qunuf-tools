@@ -5,9 +5,10 @@ interface StatsCardProps {
   title: string;
   value: string;
   isLoading?: boolean;
+  subtitle?: string;
 }
 
-const StatsCard = ({ title, value, isLoading = false }: StatsCardProps) => {
+const StatsCard = ({ title, value, isLoading = false, subtitle }: StatsCardProps) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -21,6 +22,11 @@ const StatsCard = ({ title, value, isLoading = false }: StatsCardProps) => {
             value
           )}
         </div>
+        {subtitle && (
+          <p className="text-xs text-muted-foreground mt-1">
+            {subtitle}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
