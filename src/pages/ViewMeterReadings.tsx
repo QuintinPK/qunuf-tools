@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
@@ -107,11 +108,20 @@ const ViewMeterReadings = () => {
       
       // Apply date filters if they exist
       if (startDate) {
-        query = query.gte('created_at', startDate.toISOString());
+        // Create ISO string for start date at 00:00:00
+        const startDateISO = startDate.toISOString();
+        query = query.gte('created_at', startDateISO);
       }
       
       if (endDate) {
-        query = query.lte('created_at', endDate.toISOString());
+        // Create a new date object set to the end of the selected end date
+        const adjustedEndDate = new Date(endDate);
+        adjustedEndDate.setDate(adjustedEndDate.getDate() + 1);
+        adjustedEndDate.setMilliseconds(-1); // Set to 23:59:59.999
+        
+        // Use the adjusted end date for the query
+        const endDateISO = adjustedEndDate.toISOString();
+        query = query.lte('created_at', endDateISO);
       }
 
       // Filter by selected address
