@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Card } from "@/components/ui/card";
@@ -39,6 +38,9 @@ interface CalculationResult {
   estimated_cost_per_month?: number;
   price_per_unit?: number;
   unit_name?: string;
+  total_cost?: number;
+  days_diff?: number;
+  total_consumption?: number;
 }
 
 const ViewMeterReadings = () => {
