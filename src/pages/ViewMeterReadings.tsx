@@ -155,6 +155,9 @@ const ViewMeterReadings = () => {
     const currentPrice = utilityType === 'electricity' ? electricityPrice : waterPrice;
     
     if (currentPrice) {
+      // Calculate cost for the selected date range
+      const totalCost = totalConsumption * currentPrice.price_per_unit;
+      
       // Estimate monthly cost (30 days)
       const estimatedCostPerMonth = avgConsumption * 30 * currentPrice.price_per_unit;
       
@@ -162,7 +165,10 @@ const ViewMeterReadings = () => {
         avg_consumption_per_day: avgConsumption,
         estimated_cost_per_month: estimatedCostPerMonth,
         price_per_unit: currentPrice.price_per_unit,
-        unit_name: currentPrice.unit_name
+        unit_name: currentPrice.unit_name,
+        total_cost: totalCost,
+        days_diff: daysDiff,
+        total_consumption: totalConsumption
       };
     }
     
@@ -280,6 +286,9 @@ const ViewMeterReadings = () => {
             title={`Electricity (${selectedAddress})`}
             value={`${electricityStats.avg_consumption_per_day.toFixed(2) || "0.00"} ${electricityStats.unit_name || 'kWh'}/day`}
             isLoading={isLoadingReadings}
+            additionalInfo={electricityStats.total_cost ? 
+              `Cost for ${electricityStats.days_diff} days (${electricityStats.total_consumption?.toFixed(2)} ${electricityStats.unit_name}): $${electricityStats.total_cost.toFixed(2)}` : 
+              undefined}
             subtitle={electricityStats.estimated_cost_per_month ? 
               `Est. monthly cost: $${electricityStats.estimated_cost_per_month.toFixed(2)}` : 
               undefined}
@@ -288,6 +297,9 @@ const ViewMeterReadings = () => {
             title={`Water (${selectedAddress})`}
             value={`${waterStats.avg_consumption_per_day.toFixed(2) || "0.00"} ${waterStats.unit_name || 'm³'}/day`}
             isLoading={isLoadingReadings}
+            additionalInfo={waterStats.total_cost ? 
+              `Cost for ${waterStats.days_diff} days (${waterStats.total_consumption?.toFixed(2)} ${waterStats.unit_name}): $${waterStats.total_cost.toFixed(2)}` : 
+              undefined}
             subtitle={waterStats.estimated_cost_per_month ? 
               `Est. monthly cost: $${waterStats.estimated_cost_per_month.toFixed(2)}` : 
               undefined}
