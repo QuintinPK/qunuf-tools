@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useRef } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,21 @@ interface DateRangeFilterProps {
 }
 
 const DateRangeFilter = ({ startDate, endDate, onStartDateChange, onEndDateChange }: DateRangeFilterProps) => {
+  // Refs for popover triggers
+  const endDateTriggerRef = useRef<HTMLButtonElement>(null);
+  
+  // Handle start date change
+  const handleStartDateChange = (date: Date | undefined) => {
+    onStartDateChange(date);
+    
+    // After selecting start date, focus on end date selector
+    if (date) {
+      setTimeout(() => {
+        endDateTriggerRef.current?.click();
+      }, 100);
+    }
+  };
+
   // Quick selection options
   const handleQuickSelect = (option: string) => {
     const today = new Date();
@@ -94,7 +109,7 @@ const DateRangeFilter = ({ startDate, endDate, onStartDateChange, onEndDateChang
               <Calendar
                 mode="single"
                 selected={startDate}
-                onSelect={onStartDateChange}
+                onSelect={handleStartDateChange}
                 initialFocus
                 className="p-3 pointer-events-auto"
               />
@@ -105,7 +120,11 @@ const DateRangeFilter = ({ startDate, endDate, onStartDateChange, onEndDateChang
 
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="min-w-[200px] justify-start text-left font-normal">
+              <Button 
+                ref={endDateTriggerRef}
+                variant="outline" 
+                className="min-w-[200px] justify-start text-left font-normal"
+              >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {endDate ? format(endDate, "PPP") : "End date"}
                 <ChevronDown className="ml-auto h-4 w-4 opacity-50" />
