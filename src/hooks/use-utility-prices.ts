@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -24,52 +23,20 @@ export const useFetchUtilityPrice = (utilityType: 'electricity' | 'water') => {
     queryFn: async () => {
       const now = new Date().toISOString();
       
-      try {
-        const { data, error } = await supabase
-          .from('utility_prices')
-          .select('*')
-          .eq('utility_type', utilityType)
-          .lte('effective_from', now)
-          .or(`effective_until.is.null,effective_until.gt.${now}`)
-          .order('effective_from', { ascending: false })
-          .limit(1);
-        
-        if (error) {
-          console.error(`Error fetching ${utilityType} price:`, error);
-          throw error;
-        }
-        
-        if (!data || data.length === 0) {
-          console.warn(`No price found for ${utilityType}`);
-          // Return a default value to prevent UI errors
-          const defaultPrice = {
-            id: 'default',
-            utility_type: utilityType,
-            price_per_unit: utilityType === 'electricity' ? 0.35 : 2.50,
-            unit_name: utilityType === 'electricity' ? 'kWh' : 'm³',
-            currency: 'USD',
-            effective_from: now,
-            effective_until: null,
-            created_at: now
-          };
-          
-          // Try to insert the default price for future use
-          const { error: insertError } = await supabase
-            .from('utility_prices')
-            .insert([defaultPrice]);
-            
-          if (insertError) {
-            console.error(`Error inserting default ${utilityType} price:`, insertError);
-          }
-          
-          return defaultPrice;
-        }
-        
-        console.info(`Fetched ${utilityType} price:`, data[0]);
-        return data[0] as UtilityPrice;
-      } catch (error) {
-        console.error(`Failed to fetch ${utilityType} price:`, error);
-        // Return a fallback value even in case of error
+      console.log(`Fetching ${utilityType} price...`);
+      
+      const { data, error } = await supabase
+        .from('utility_prices')
+        .select('*')
+        .eq('utility_type', utilityType)
+        .lte('effective_from', now)
+        .or(`effective_until.is.null,effective_until.gt.${now}`)
+        .order('effective_from', { ascending: false })
+        .limit(1);
+      
+      if (error) {
+        console.error(`Error fetching ${utilityType} price:`, error);
+        // Instead of throwing, return a default value
         return {
           id: 'default',
           utility_type: utilityType,
@@ -81,6 +48,50 @@ export const useFetchUtilityPrice = (utilityType: 'electricity' | 'water') => {
           created_at: now
         };
       }
+      
+      if (!data || data.length === 0) {
+        console.warn(`No price found for ${utilityType}, inserting default`);
+        // Create a default price record
+        const defaultPrice: Omit<UtilityPrice, 'id' | 'created_at'> = {
+          utility_type: utilityType,
+          price_per_unit: utilityType === 'electricity' ? 0.35 : 2.50,
+          unit_name: utilityType === 'electricity' ? 'kWh' : 'm³',
+          currency: 'USD',
+          effective_from: now,
+          effective_until: null,
+        };
+        
+        // Try to insert the default price for future use
+        try {
+          const { data: insertedPrice, error: insertError } = await supabase
+            .from('utility_prices')
+            .insert([defaultPrice])
+            .select()
+            .single();
+            
+          if (insertError) {
+            console.error(`Error inserting default ${utilityType} price:`, insertError);
+            return {
+              id: 'default',
+              ...defaultPrice,
+              created_at: now
+            };
+          }
+          
+          console.info(`Inserted default ${utilityType} price:`, insertedPrice);
+          return insertedPrice as UtilityPrice;
+        } catch (insertErr) {
+          console.error(`Failed to insert default ${utilityType} price:`, insertErr);
+          return {
+            id: 'default',
+            ...defaultPrice,
+            created_at: now
+          };
+        }
+      }
+      
+      console.info(`Successfully fetched ${utilityType} price:`, data[0]);
+      return data[0] as UtilityPrice;
     },
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
     retry: 2, // Retry failed requests
@@ -95,24 +106,23 @@ export const useFetchAllUtilityPrices = () => {
   return useQuery<UtilityPrice[]>({
     queryKey: ['utility-prices-all'],
     queryFn: async () => {
-      try {
-        const { data, error } = await supabase
-          .from('utility_prices')
-          .select('*')
-          .order('utility_type', { ascending: true })
-          .order('effective_from', { ascending: false });
-        
-        if (error) {
-          console.error('Error fetching all utility prices:', error);
-          throw error;
-        }
-        
-        return data as UtilityPrice[];
-      } catch (error) {
-        console.error('Failed to fetch all utility prices:', error);
-        return [];
+      console.log("Fetching all utility prices...");
+      
+      const { data, error } = await supabase
+        .from('utility_prices')
+        .select('*')
+        .order('utility_type', { ascending: true })
+        .order('effective_from', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching all utility prices:', error);
+        return []; // Return empty array instead of throwing
       }
+      
+      console.info("Successfully fetched all utility prices:", data);
+      return data as UtilityPrice[];
     },
+    staleTime: 5 * 60 * 1000,
     retry: 2,
   });
 };
@@ -123,6 +133,8 @@ export const useFetchAllUtilityPrices = () => {
  * @returns The added price record
  */
 export const addUtilityPrice = async (price: Omit<UtilityPrice, 'id' | 'created_at'>) => {
+  console.log("Adding utility price:", price);
+  
   const { data, error } = await supabase
     .from('utility_prices')
     .insert([price])
@@ -133,6 +145,7 @@ export const addUtilityPrice = async (price: Omit<UtilityPrice, 'id' | 'created_
     throw error;
   }
   
+  console.info("Successfully added utility price:", data[0]);
   return data[0];
 };
 
