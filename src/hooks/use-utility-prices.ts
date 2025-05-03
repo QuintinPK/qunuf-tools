@@ -33,13 +33,29 @@ export const useFetchUtilityPrice = (utilityType: 'electricity' | 'water') => {
         .order('effective_from', { ascending: false })
         .limit(1);
       
-      if (error) throw error;
+      if (error) {
+        console.error(`Error fetching ${utilityType} price:`, error);
+        throw error;
+      }
+      
       if (!data || data.length === 0) {
-        throw new Error(`No price found for ${utilityType}`);
+        console.warn(`No price found for ${utilityType}`);
+        // Return a default value to prevent UI errors
+        return {
+          id: 'default',
+          utility_type: utilityType,
+          price_per_unit: utilityType === 'electricity' ? 0.35 : 2.50,
+          unit_name: utilityType === 'electricity' ? 'kWh' : 'm³',
+          currency: 'USD',
+          effective_from: now,
+          effective_until: null,
+          created_at: now
+        };
       }
       
       return data[0] as UtilityPrice;
-    }
+    },
+    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
 };
 

@@ -57,9 +57,18 @@ const ViewMeterReadings = () => {
   const [editElectricityReading, setEditElectricityReading] = useState<number | null>(null);
   const [editWaterReading, setEditWaterReading] = useState<number | null>(null);
 
-  // Fetch utility prices
-  const { data: electricityPrice } = useFetchUtilityPrice('electricity');
-  const { data: waterPrice } = useFetchUtilityPrice('water');
+  // Fetch utility prices with proper error handling
+  const { data: electricityPrice, isLoading: isLoadingElectricity } = useFetchUtilityPrice('electricity');
+  const { data: waterPrice, isLoading: isLoadingWater } = useFetchUtilityPrice('water');
+
+  useEffect(() => {
+    if (electricityPrice) {
+      console.log("Fetched electricity price:", electricityPrice);
+    }
+    if (waterPrice) {
+      console.log("Fetched water price:", waterPrice);
+    }
+  }, [electricityPrice, waterPrice]);
 
   // Fetch unique addresses
   const { data: addresses = [], isLoading: isLoadingAddresses } = useQuery({
@@ -156,7 +165,7 @@ const ViewMeterReadings = () => {
     // Calculate cost if price data is available
     const currentPrice = utilityType === 'electricity' ? electricityPrice : waterPrice;
     
-    if (currentPrice) {
+    if (currentPrice && currentPrice.price_per_unit) {
       // Calculate cost for the selected date range
       const totalCost = totalConsumption * currentPrice.price_per_unit;
       
@@ -257,6 +266,8 @@ const ViewMeterReadings = () => {
   const electricityStats = calculateStats('electricity');
   const waterStats = calculateStats('water');
 
+  const isLoadingPrices = isLoadingElectricity || isLoadingWater;
+
   return (
     <div className={`${isMobile ? 'px-2 py-4' : 'container mx-auto py-8 px-4'}`}>
       <h1 className="text-3xl font-bold mb-6">View Meter Readings</h1>
@@ -287,7 +298,7 @@ const ViewMeterReadings = () => {
           <StatsCard
             title={`Electricity (${selectedAddress})`}
             value={`${electricityStats.avg_consumption_per_day.toFixed(2) || "0.00"} ${electricityStats.unit_name || 'kWh'}/day`}
-            isLoading={isLoadingReadings}
+            isLoading={isLoadingReadings || isLoadingPrices}
             additionalInfo={electricityStats.total_cost ? 
               `Cost for ${electricityStats.days_diff} days (${electricityStats.total_consumption?.toFixed(2)} ${electricityStats.unit_name}): $${electricityStats.total_cost.toFixed(2)}` : 
               undefined}
@@ -298,7 +309,7 @@ const ViewMeterReadings = () => {
           <StatsCard
             title={`Water (${selectedAddress})`}
             value={`${waterStats.avg_consumption_per_day.toFixed(2) || "0.00"} ${waterStats.unit_name || 'm³'}/day`}
-            isLoading={isLoadingReadings}
+            isLoading={isLoadingReadings || isLoadingPrices}
             additionalInfo={waterStats.total_cost ? 
               `Cost for ${waterStats.days_diff} days (${waterStats.total_consumption?.toFixed(2)} ${waterStats.unit_name}): $${waterStats.total_cost.toFixed(2)}` : 
               undefined}
