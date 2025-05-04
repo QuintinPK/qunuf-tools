@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { TimeTrackerSession } from "@/types/time-tracker";
 import { Clock, Timer, TimerOff, Check } from "lucide-react";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 interface TimeTrackerFormProps {
   onAddSession: (session: Omit<TimeTrackerSession, 'id' | 'created_at' | 'updated_at'>) => void;
@@ -25,6 +25,8 @@ const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
   const [notes, setNotes] = useState("");
   const [currentTimer, setCurrentTimer] = useState("00:00:00");
   const [intervalId, setIntervalId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
   // Load active session from localStorage on component mount
   useEffect(() => {
@@ -81,7 +83,7 @@ const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
     setIsActive(true);
   };
 
-  const handleStop = () => {
+  const handleStop = async () => {
     if (!startTime) return;
     
     const endTime = new Date();
@@ -93,7 +95,11 @@ const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
     
     // Validate form before saving
     if (!category) {
-      alert("Please select a category");
+      toast({
+        title: "Error",
+        description: "Please select a category",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -106,16 +112,32 @@ const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
       notes: notes.trim() || null
     };
     
-    onAddSession(newSession);
+    // Prevent multiple submissions
+    if (isSubmitting) return;
     
-    // Reset form and remove from localStorage
-    setIsActive(false);
-    setStartTime(null);
-    setCurrentTimer("00:00:00");
-    setCategory("");
-    setCustomCategory("");
-    setNotes("");
-    localStorage.removeItem(STORAGE_KEY);
+    setIsSubmitting(true);
+    
+    try {
+      await onAddSession(newSession);
+      
+      // Reset form and remove from localStorage
+      setIsActive(false);
+      setStartTime(null);
+      setCurrentTimer("00:00:00");
+      setCategory("");
+      setCustomCategory("");
+      setNotes("");
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error("Error saving session:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save time tracking session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
@@ -209,13 +231,15 @@ const TimeTrackerForm: React.FC<TimeTrackerFormProps> = ({ onAddSession }) => {
                   onClick={handleStop} 
                   className="flex-1"
                   variant="default"
+                  disabled={isSubmitting}
                 >
                   <Check className="mr-2 h-4 w-4" />
-                  Complete & Save
+                  {isSubmitting ? "Saving..." : "Complete & Save"}
                 </Button>
                 <Button 
                   onClick={handleCancel} 
                   variant="destructive"
+                  disabled={isSubmitting}
                 >
                   <TimerOff className="h-4 w-4" />
                 </Button>

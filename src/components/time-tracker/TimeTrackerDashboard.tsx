@@ -24,13 +24,17 @@ const TimeTrackerDashboard = () => {
         .select('*')
         .order('start_time', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching sessions:', error);
+        throw error;
+      }
+      
       setSessions(data || []);
     } catch (error) {
       console.error('Error fetching sessions:', error);
       toast({
         title: "Error fetching sessions",
-        description: "Failed to load your time tracking data",
+        description: "Failed to load your time tracking data. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -40,31 +44,60 @@ const TimeTrackerDashboard = () => {
 
   useEffect(() => {
     fetchSessions();
+    
+    // Set up real-time subscription to time tracking sessions
+    const channel = supabase
+      .channel('db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'time_tracking_sessions'
+        },
+        () => {
+          fetchSessions(); // Refresh the data when changes occur
+        }
+      )
+      .subscribe();
+      
+    // Clean up subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Add a new session
   const addSession = async (newSession: Omit<TimeTrackerSession, 'id' | 'created_at' | 'updated_at'>) => {
     try {
+      console.log("Adding new session:", newSession);
+      
       const { data, error } = await supabase
         .from('time_tracking_sessions')
         .insert([newSession])
         .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding session:', error);
+        throw error;
+      }
+      
       if (data) {
         setSessions([data[0], ...sessions]);
         toast({
           title: "Success",
           description: "Time tracking session added",
         });
+        return data[0];
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding session:', error);
       toast({
         title: "Error",
-        description: "Failed to add time tracking session",
+        description: `Failed to add time tracking session: ${error.message || "Unknown error"}`,
         variant: "destructive",
       });
+      throw error;
     }
   };
 

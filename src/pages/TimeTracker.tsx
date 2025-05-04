@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import TimeTrackerDashboard from "@/components/time-tracker/TimeTrackerDashboard";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const TimeTracker = () => {
   const isMobile = useIsMobile();
@@ -12,13 +13,35 @@ const TimeTracker = () => {
     const activeSession = localStorage.getItem("activeTimeTrackerSession");
     if (activeSession) {
       const sessionData = JSON.parse(activeSession);
-      const startTime = new Date(sessionData.startTimeStr);
       
+      // Display a toast notification about the active session
       toast({
         title: "Tracking Resumed",
         description: `Time tracking for "${sessionData.category}" has been resumed.`,
       });
     }
+    
+    // Set up real-time subscription to time tracking sessions
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'time_tracking_sessions'
+        },
+        (payload) => {
+          console.log('Change received!', payload);
+          // The TimeTrackerDashboard component will handle refreshing the data
+        }
+      )
+      .subscribe();
+      
+    // Clean up subscription on unmount
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [toast]);
   
   return (
