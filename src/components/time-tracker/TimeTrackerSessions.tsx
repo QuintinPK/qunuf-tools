@@ -20,7 +20,7 @@ interface TimeTrackerSessionsProps {
   onRefresh: () => void;
 }
 
-const CATEGORIES = ["Cleaning", "Maintenance", "Check-in", "Check-out", "Other"];
+const CATEGORIES = ["Preparation", "Maintenance", "Check-in", "Check-out", "Other"];
 
 const TimeTrackerSessions: React.FC<TimeTrackerSessionsProps> = ({
   sessions,
