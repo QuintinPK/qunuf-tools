@@ -35,6 +35,14 @@ const UtilityIcon: React.FC<{ type: UtilityType }> = ({ type }) => {
   }
 };
 
+const isOverdue = (dueDate: string): boolean => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueDateObj = new Date(dueDate);
+  dueDateObj.setHours(0, 0, 0, 0);
+  return dueDateObj < today;
+};
+
 const InvoiceCard: React.FC<InvoiceCardProps> = ({ 
   invoice, 
   onViewDetails, 
@@ -47,11 +55,14 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
     currency: 'USD',
   }).format(amount);
 
+  const overdue = isOverdue(dueDate) && !isPaid;
+
   return (
     <Card className={cn(
       "transition-all hover:shadow-md",
       utilityType === "water" ? "border-l-4 border-l-water" : "border-l-4 border-l-electricity",
-      isPaid ? "opacity-80" : ""
+      isPaid ? "opacity-80" : "",
+      overdue ? "border-t-2 border-t-red-500" : ""
     )}>
       <CardHeader className="pb-3 flex flex-row justify-between items-start">
         <div className="flex items-center gap-2">
@@ -64,10 +75,11 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
         <Badge
           variant={isPaid ? "outline" : "default"}
           className={cn(
-            isPaid ? "bg-green-100 text-green-800 hover:bg-green-100" : "bg-amber-100 text-amber-800 hover:bg-amber-100"
+            isPaid ? "bg-green-100 text-green-800 hover:bg-green-100" : 
+            overdue ? "bg-red-100 text-red-800 hover:bg-red-100" : "bg-amber-100 text-amber-800 hover:bg-amber-100"
           )}
         >
-          {isPaid ? "Paid" : "Unpaid"}
+          {isPaid ? "Paid" : overdue ? "Overdue" : "Unpaid"}
         </Badge>
       </CardHeader>
       <CardContent className="pb-3">
@@ -76,12 +88,17 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
           <span className="font-medium">{invoiceDate}</span>
           
           <span className="text-muted-foreground">Due Date:</span>
-          <span className="font-medium">{dueDate}</span>
+          <span className={cn(
+            "font-medium",
+            overdue ? "text-red-600 font-bold" : ""
+          )}>
+            {dueDate}
+          </span>
           
           <span className="text-muted-foreground">Amount:</span>
           <span className={cn(
             "font-medium",
-            isPaid ? "line-through text-muted-foreground" : "text-foreground"
+            isPaid ? "line-through text-muted-foreground" : overdue ? "text-red-600 font-bold" : "text-foreground"
           )}>
             {formattedAmount}
           </span>

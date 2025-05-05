@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Invoice } from '@/types/invoice';
@@ -14,6 +13,7 @@ import InvoiceDetailsDialog from './InvoiceDetailsDialog';
 import InvoiceStats from './InvoiceStats';
 import UnpaidTotal from './UnpaidTotal';
 import PercentageDifference from './PercentageDifference';
+import { cn } from '@/lib/utils';
 
 const Dashboard = () => {
   const { toast } = useToast();
@@ -154,6 +154,14 @@ const Dashboard = () => {
       return a.address.localeCompare(b.address);
     });
 
+  const isOverdue = (dueDate: string): boolean => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dueDateObj = new Date(dueDate);
+    dueDateObj.setHours(0, 0, 0, 0);
+    return dueDateObj < today;
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-5xl">
       <div className="grid gap-8">
@@ -226,40 +234,54 @@ const Dashboard = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {filteredAndSortedInvoices.map(invoice => (
-                            <TableRow key={invoice.id}>
-                              <TableCell>{invoice.invoiceNumber}</TableCell>
-                              <TableCell>{invoice.address}</TableCell>
-                              <TableCell>
-                                <span className={invoice.utilityType === 'water' ? 'text-water' : 'text-electricity'}>
-                                  {invoice.utilityType === 'water' ? 'Water' : 'Electricity'}
-                                </span>
-                              </TableCell>
-                              <TableCell>{invoice.invoiceDate}</TableCell>
-                              <TableCell>{invoice.dueDate}</TableCell>
-                              <TableCell>${invoice.amount.toFixed(2)}</TableCell>
-                              <TableCell>
-                                <PercentageDifference 
-                                  currentInvoice={invoice} 
-                                  allInvoices={invoices} 
-                                />
-                              </TableCell>
-                              <TableCell>
-                                <span className={invoice.isPaid ? 'text-green-600' : 'text-amber-600'}>
-                                  {invoice.isPaid ? 'Paid' : 'Unpaid'}
-                                </span>
-                              </TableCell>
-                              <TableCell className="text-right">
-                                <Button 
-                                  variant="ghost"
-                                  className="h-8 w-8 p-0"
-                                  onClick={() => handleViewDetails(invoice)}
-                                >
-                                  View
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                          {filteredAndSortedInvoices.map(invoice => {
+                            const overdue = isOverdue(invoice.dueDate) && !invoice.isPaid;
+                            return (
+                              <TableRow 
+                                key={invoice.id}
+                                className={cn(overdue ? "bg-red-50" : "")}
+                              >
+                                <TableCell>{invoice.invoiceNumber}</TableCell>
+                                <TableCell>{invoice.address}</TableCell>
+                                <TableCell>
+                                  <span className={invoice.utilityType === 'water' ? 'text-water' : 'text-electricity'}>
+                                    {invoice.utilityType === 'water' ? 'Water' : 'Electricity'}
+                                  </span>
+                                </TableCell>
+                                <TableCell>{invoice.invoiceDate}</TableCell>
+                                <TableCell className={cn(overdue ? "text-red-600 font-bold" : "")}>
+                                  {invoice.dueDate}
+                                </TableCell>
+                                <TableCell>${invoice.amount.toFixed(2)}</TableCell>
+                                <TableCell>
+                                  <PercentageDifference 
+                                    currentInvoice={invoice} 
+                                    allInvoices={invoices} 
+                                  />
+                                </TableCell>
+                                <TableCell>
+                                  <span className={
+                                    invoice.isPaid 
+                                      ? 'text-green-600' 
+                                      : overdue 
+                                        ? 'text-red-600 font-bold' 
+                                        : 'text-amber-600'
+                                  }>
+                                    {invoice.isPaid ? 'Paid' : overdue ? 'Overdue' : 'Unpaid'}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <Button 
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0"
+                                    onClick={() => handleViewDetails(invoice)}
+                                  >
+                                    View
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     ) : (
