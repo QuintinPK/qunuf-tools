@@ -13,6 +13,7 @@ import ExportMeterReadings from "./pages/ExportMeterReadings";
 import TimeTracker from "./pages/TimeTracker";
 import NotFound from "./pages/NotFound";
 import UtilityPrices from "./pages/UtilityPrices";
+import WhatsAppGenerator from "./pages/WhatsAppGenerator";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/meter-reading/export" element={<ExportMeterReadings />} />
             <Route path="/meter-reading/utility-prices" element={<UtilityPrices />} />
             <Route path="/time-tracker" element={<TimeTracker />} />
+            <Route path="/whatsapp-generator" element={<WhatsAppGenerator />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </MainLayout>
