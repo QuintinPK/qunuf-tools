@@ -21,13 +21,13 @@ const WhatsAppGenerator = () => {
     }
   ]);
 
-  const addMessage = (content: string, type: Message['type'] = 'text', isOwn: boolean = true) => {
+  const addMessage = (content: string, type: Message['type'] = 'text', isOwn: boolean = true, customTime?: Date) => {
     if (!currentChat) return;
 
     const newMessage: Message = {
       id: Date.now().toString(),
       content,
-      timestamp: new Date(),
+      timestamp: customTime || new Date(),
       isOwn,
       status: 'read',
       type,
@@ -37,6 +37,17 @@ const WhatsAppGenerator = () => {
       ...prev,
       messages: [...prev.messages, newMessage],
       lastMessageTime: new Date(),
+    } : null);
+  };
+
+  const updateMessageTime = (messageId: string, newTime: Date) => {
+    if (!currentChat) return;
+
+    setCurrentChat(prev => prev ? {
+      ...prev,
+      messages: prev.messages.map(msg => 
+        msg.id === messageId ? { ...msg, timestamp: newTime } : msg
+      ),
     } : null);
   };
 
@@ -74,7 +85,7 @@ const WhatsAppGenerator = () => {
             <Card className="h-[600px] flex flex-col overflow-hidden bg-[#ECE5DD] border-0 shadow-lg">
               {currentChat ? (
                 <>
-                  <ChatInterface chat={currentChat} />
+                  <ChatInterface chat={currentChat} onUpdateMessageTime={updateMessageTime} />
                   <MessageInput onSendMessage={addMessage} />
                 </>
               ) : (

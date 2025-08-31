@@ -5,9 +5,10 @@ import { Chat } from "@/types/whatsapp";
 
 interface ChatInterfaceProps {
   chat: Chat;
+  onUpdateMessageTime?: (messageId: string, newTime: Date) => void;
 }
 
-export const ChatInterface = ({ chat }: ChatInterfaceProps) => {
+export const ChatInterface = ({ chat, onUpdateMessageTime }: ChatInterfaceProps) => {
   return (
     <div className="flex-1 flex flex-col">
       <ChatHeader contact={chat.contact} />
@@ -20,7 +21,11 @@ export const ChatInterface = ({ chat }: ChatInterfaceProps) => {
             </div>
           ) : (
             chat.messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
+              <MessageBubble 
+                key={message.id} 
+                message={message} 
+                onUpdateTime={onUpdateMessageTime}
+              />
             ))
           )}
         </div>
