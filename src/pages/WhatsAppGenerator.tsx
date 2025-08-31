@@ -51,6 +51,19 @@ const WhatsAppGenerator = () => {
     } : null);
   };
 
+  const updateContact = (updatedContact: Contact) => {
+    if (!currentChat) return;
+
+    setCurrentChat(prev => prev ? {
+      ...prev,
+      contact: updatedContact,
+    } : null);
+
+    setContacts(prev => prev.map(contact => 
+      contact.id === updatedContact.id ? updatedContact : contact
+    ));
+  };
+
   const createNewChat = (contact: Contact) => {
     const newChat: Chat = {
       id: Date.now().toString(),
@@ -85,7 +98,7 @@ const WhatsAppGenerator = () => {
             <Card className="h-[600px] flex flex-col overflow-hidden bg-[#ECE5DD] border-0 shadow-lg">
               {currentChat ? (
                 <>
-                  <ChatInterface chat={currentChat} onUpdateMessageTime={updateMessageTime} />
+                  <ChatInterface chat={currentChat} onUpdateMessageTime={updateMessageTime} onUpdateContact={updateContact} />
                   <MessageInput onSendMessage={addMessage} />
                 </>
               ) : (

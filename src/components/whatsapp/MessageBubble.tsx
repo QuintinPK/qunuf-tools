@@ -62,7 +62,7 @@ export const MessageBubble = ({ message, onUpdateTime }: MessageBubbleProps) => 
           {message.content}
         </div>
         
-        <div className={`flex items-center gap-1 mt-1 ${message.isOwn ? 'justify-end' : 'justify-start'}`}>
+        <div className={`flex items-center mt-1 ${message.isOwn ? 'justify-end' : 'justify-start'}`}>
           {isEditingTime ? (
             <div className="flex items-center gap-1">
               <Input
@@ -89,7 +89,7 @@ export const MessageBubble = ({ message, onUpdateTime }: MessageBubbleProps) => 
               </Button>
             </div>
           ) : (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 ml-auto">
               <span 
                 className="text-xs text-gray-500 cursor-pointer hover:text-gray-700"
                 onClick={() => setIsEditingTime(true)}
@@ -104,12 +104,11 @@ export const MessageBubble = ({ message, onUpdateTime }: MessageBubbleProps) => 
               >
                 <Edit3 className="h-2 w-2" />
               </Button>
-            </div>
-          )}
-          
-          {message.isOwn && !isEditingTime && (
-            <div className="text-gray-500">
-              {getStatusIcon()}
+              {message.isOwn && (
+                <div className="text-gray-500">
+                  {getStatusIcon()}
+                </div>
+              )}
             </div>
           )}
         </div>
