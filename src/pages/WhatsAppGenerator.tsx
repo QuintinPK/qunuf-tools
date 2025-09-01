@@ -50,8 +50,20 @@ const WhatsAppGenerator = () => {
       lastMessageTime: new Date(),
     } : null);
 
-    // Save to database if chat has been saved
-    if (currentChat.id && currentChat.id.length > 10) { // Check if it's a real DB ID
+    // Auto-save chat if it's the first message and not saved yet
+    if (!currentChat.isSaved && currentChat.messages.length === 0) {
+      try {
+        await saveCurrentChat();
+      } catch (error) {
+        console.error('Error auto-saving chat:', error);
+        toast({
+          title: "Warning",
+          description: "Chat could not be auto-saved",
+          variant: "destructive",
+        });
+      }
+    } else if (currentChat.isSaved && isValidUUID(currentChat.id)) {
+      // Save message to existing chat
       try {
         await whatsappService.addMessage(currentChat.id, newMessage);
       } catch (error) {
@@ -77,7 +89,7 @@ const WhatsAppGenerator = () => {
     } : null);
 
     // Update in database if chat is saved
-    if (currentChat.id && currentChat.id.length > 10) {
+    if (currentChat.isSaved && isValidUUID(currentChat.id)) {
       try {
         await whatsappService.updateMessageTime(messageId, newTime);
       } catch (error) {
@@ -100,7 +112,7 @@ const WhatsAppGenerator = () => {
     ));
 
     // Update in database if contact exists
-    if (updatedContact.id && updatedContact.id.length > 10) {
+    if (updatedContact.id && isValidUUID(updatedContact.id)) {
       try {
         await whatsappService.updateContact(updatedContact.id, updatedContact);
       } catch (error) {
@@ -109,10 +121,15 @@ const WhatsAppGenerator = () => {
     }
   };
 
+  const isValidUUID = (id: string) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+  };
+
   const createNewChat = async (contact: Contact) => {
     // If contact doesn't exist in DB, create it
     let dbContact = contact;
-    if (!contact.id || contact.id.length <= 10) {
+    if (!contact.id || !isValidUUID(contact.id)) {
       try {
         dbContact = await whatsappService.createContact(contact);
         setContacts(prev => [...prev.filter(c => c.id !== contact.id), dbContact]);
@@ -126,6 +143,7 @@ const WhatsAppGenerator = () => {
       contact: dbContact,
       messages: [],
       lastMessageTime: new Date(),
+      isSaved: false,
     };
     setCurrentChat(newChat);
   };
@@ -144,7 +162,7 @@ const WhatsAppGenerator = () => {
       }
 
       // Update current chat with the database ID
-      setCurrentChat(prev => prev ? { ...prev, id: chatId } : null);
+      setCurrentChat(prev => prev ? { ...prev, id: chatId, isSaved: true } : null);
       
       toast({
         title: "Success",
@@ -189,15 +207,21 @@ const WhatsAppGenerator = () => {
             
             {currentChat && (
               <>
-                {(!currentChat.id || currentChat.id.length <= 10) && (
+                {!currentChat.isSaved && (
                   <Button 
                     onClick={saveCurrentChat}
                     disabled={isSaving || currentChat.messages.length === 0}
                     className="w-full"
+                    variant="outline"
                   >
                     <Save className="h-4 w-4 mr-2" />
                     {isSaving ? "Saving..." : "Save Chat"}
                   </Button>
+                )}
+                {currentChat.isSaved && (
+                  <div className="text-xs text-muted-foreground text-center py-2">
+                    Chat auto-saved ✓
+                  </div>
                 )}
                 <ExportOptions chat={currentChat} />
               </>
@@ -205,7 +229,7 @@ const WhatsAppGenerator = () => {
           </div>
 
           <div className="lg:col-span-3">
-            <Card className="h-[600px] flex flex-col overflow-hidden bg-[#ECE5DD] border-0 shadow-lg whatsapp-chat-interface">
+            <Card className="h-[600px] flex flex-col overflow-hidden bg-whatsapp-bg border-0 shadow-lg whatsapp-chat-interface">
               {currentChat ? (
                 <>
                   <ChatInterface chat={currentChat} onUpdateMessageTime={updateMessageTime} onUpdateContact={updateContact} />

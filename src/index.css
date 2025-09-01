@@ -49,6 +49,16 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* WhatsApp Colors */
+    --whatsapp-primary: 150 63% 26%;
+    --whatsapp-primary-light: 150 84% 44%;
+    --whatsapp-secondary: 184 100% 34%;
+    --whatsapp-bg: 44 13% 91%;
+    --whatsapp-own-message: 90 43% 85%;
+    --whatsapp-received-message: 0 0% 100%;
+    --whatsapp-header: 150 63% 26%;
+    --whatsapp-input-bg: 0 0% 100%;
   }
 
   .dark {
@@ -87,6 +97,16 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* WhatsApp Colors - Dark Mode */
+    --whatsapp-primary: 150 63% 26%;
+    --whatsapp-primary-light: 150 84% 44%;
+    --whatsapp-secondary: 184 100% 34%;
+    --whatsapp-bg: 222 13% 8%;
+    --whatsapp-own-message: 150 63% 20%;
+    --whatsapp-received-message: 216 12% 16%;
+    --whatsapp-header: 150 63% 26%;
+    --whatsapp-input-bg: 216 12% 16%;
   }
 }
 

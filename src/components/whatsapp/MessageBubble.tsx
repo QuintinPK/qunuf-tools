@@ -43,22 +43,22 @@ export const MessageBubble = ({ message, onUpdateTime }: MessageBubbleProps) => 
   };
 
   return (
-    <div className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'} mb-1 group`}>
+    <div className={`flex ${message.isOwn ? 'justify-end' : 'justify-start'} mb-2 group`}>
       <div
         className={`
-          max-w-[70%] rounded-lg px-3 py-2 shadow-sm relative
+          max-w-[75%] px-4 py-2 shadow-md relative transition-all duration-200
           ${message.isOwn 
-            ? 'bg-[#DCF8C6] text-gray-800' 
-            : 'bg-white text-gray-800'
+            ? 'bg-whatsapp-own-message text-gray-900' 
+            : 'bg-whatsapp-received-message text-gray-900'
           }
         `}
         style={{
           borderRadius: message.isOwn 
-            ? '18px 18px 4px 18px' 
-            : '18px 18px 18px 4px'
+            ? '20px 20px 6px 20px' 
+            : '20px 20px 20px 6px'
         }}
       >
-        <div className="break-words">
+        <div className="break-words text-sm leading-relaxed">
           {message.content}
         </div>
         
@@ -91,7 +91,7 @@ export const MessageBubble = ({ message, onUpdateTime }: MessageBubbleProps) => 
           ) : (
             <div className="flex items-center gap-1 ml-auto">
               <span 
-                className="text-xs text-gray-500 cursor-pointer hover:text-gray-700"
+                className="text-xs text-gray-600 cursor-pointer hover:text-gray-800"
                 onClick={() => setIsEditingTime(true)}
               >
                 {format(message.timestamp, 'HH:mm')}
@@ -105,7 +105,7 @@ export const MessageBubble = ({ message, onUpdateTime }: MessageBubbleProps) => 
                 <Edit3 className="h-2 w-2" />
               </Button>
               {message.isOwn && (
-                <div className="text-gray-500">
+                <div className="text-gray-600 ml-1">
                   {getStatusIcon()}
                 </div>
               )}

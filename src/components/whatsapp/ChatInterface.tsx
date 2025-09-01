@@ -14,11 +14,11 @@ export const ChatInterface = ({ chat, onUpdateMessageTime, onUpdateContact }: Ch
     <div className="flex-1 flex flex-col">
       <ChatHeader contact={chat.contact} onUpdateContact={onUpdateContact} />
       
-      <ScrollArea className="flex-1 px-4 py-2">
-        <div className="space-y-2">
+      <ScrollArea className="flex-1 px-6 py-4">
+        <div className="space-y-3">
           {chat.messages.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              <p>No messages yet. Start the conversation!</p>
+            <div className="text-center text-gray-600 py-12">
+              <p className="text-lg">No messages yet. Start the conversation!</p>
             </div>
           ) : (
             chat.messages.map((message) => (

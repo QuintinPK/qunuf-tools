@@ -22,4 +22,5 @@ export interface Chat {
   contact: Contact;
   messages: Message[];
   lastMessageTime: Date;
+  isSaved?: boolean;
 }

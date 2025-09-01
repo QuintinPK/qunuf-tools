@@ -72,6 +72,16 @@ export default {
 					DEFAULT: '#fb8c00',
 					light: '#ffe0b2',
 					dark: '#e65100',
+				},
+				whatsapp: {
+					primary: 'hsl(var(--whatsapp-primary))',
+					'primary-light': 'hsl(var(--whatsapp-primary-light))',
+					secondary: 'hsl(var(--whatsapp-secondary))',
+					bg: 'hsl(var(--whatsapp-bg))',
+					'own-message': 'hsl(var(--whatsapp-own-message))',
+					'received-message': 'hsl(var(--whatsapp-received-message))',
+					header: 'hsl(var(--whatsapp-header))',
+					'input-bg': 'hsl(var(--whatsapp-input-bg))',
 				}
 			},
 			borderRadius: {

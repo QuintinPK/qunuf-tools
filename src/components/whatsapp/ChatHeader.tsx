@@ -56,16 +56,16 @@ export const ChatHeader = ({ contact, onUpdateContact }: ChatHeaderProps) => {
   };
 
   return (
-    <div className="bg-[#075E54] text-white p-3 flex items-center gap-3">
+    <div className="bg-whatsapp-header text-white p-4 flex items-center gap-3">
       <Avatar className="h-10 w-10">
         <AvatarImage src={contact.avatar} />
-        <AvatarFallback className="bg-[#25D366] text-white">
+        <AvatarFallback className="bg-whatsapp-primary-light text-white">
           {contact.name.charAt(0).toUpperCase()}
         </AvatarFallback>
       </Avatar>
       
       <div className="flex-1 min-w-0">
-        <h3 className="font-medium truncate">{contact.name}</h3>
+        <h3 className="font-medium truncate text-base">{contact.name}</h3>
         <div className="flex items-center gap-1 group">
           {isEditingStatus ? (
             <Select onValueChange={handleStatusChange}>
@@ -102,10 +102,10 @@ export const ChatHeader = ({ contact, onUpdateContact }: ChatHeaderProps) => {
         </div>
       </div>
       
-      <div className="flex items-center gap-4">
-        <Video className="h-5 w-5 cursor-pointer hover:text-white/80" />
-        <Phone className="h-5 w-5 cursor-pointer hover:text-white/80" />
-        <MoreVertical className="h-5 w-5 cursor-pointer hover:text-white/80" />
+      <div className="flex items-center gap-6">
+        <Video className="h-6 w-6 cursor-pointer hover:text-white/80 transition-colors" />
+        <Phone className="h-6 w-6 cursor-pointer hover:text-white/80 transition-colors" />
+        <MoreVertical className="h-6 w-6 cursor-pointer hover:text-white/80 transition-colors" />
       </div>
     </div>
   );

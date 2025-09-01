@@ -30,88 +30,94 @@ export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   };
 
   return (
-    <div className="bg-[#F0F0F0] p-3 space-y-3">
-      <div className="flex items-center gap-4 text-xs">
-        <div className="flex items-center gap-2">
-          <span>Send as:</span>
-          <Button
-            variant={isOwn ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsOwn(true)}
-            className="h-6 px-2 text-xs"
-          >
-            Me
-          </Button>
-          <Button
-            variant={!isOwn ? "default" : "outline"}
-            size="sm"
-            onClick={() => setIsOwn(false)}
-            className="h-6 px-2 text-xs"
-          >
-            Contact
-          </Button>
-        </div>
+    <div className="bg-whatsapp-input-bg border-t border-gray-200 p-4">
+      {/* Sender Selection */}
+      <div className="flex gap-2 mb-3">
+        <Button
+          variant={isOwn ? "default" : "outline"}
+          size="sm"
+          onClick={() => setIsOwn(true)}
+          className={`text-xs ${isOwn ? 'bg-whatsapp-primary hover:bg-whatsapp-primary/90' : ''}`}
+        >
+          Me
+        </Button>
+        <Button
+          variant={!isOwn ? "default" : "outline"}
+          size="sm"
+          onClick={() => setIsOwn(false)}
+          className={`text-xs ${!isOwn ? 'bg-whatsapp-primary hover:bg-whatsapp-primary/90' : ''}`}
+        >
+          Contact
+        </Button>
         
-        <div className="flex items-center gap-2">
-          <Button
-            variant={useCustomTime ? "default" : "outline"}
-            size="sm"
-            onClick={() => setUseCustomTime(!useCustomTime)}
-            className="h-6 px-2 text-xs"
-          >
-            <Clock className="h-3 w-3 mr-1" />
-            Custom Time
-          </Button>
-        </div>
+        <Button
+          variant={useCustomTime ? "default" : "outline"}
+          size="sm"
+          onClick={() => setUseCustomTime(!useCustomTime)}
+          className={`text-xs ml-auto ${useCustomTime ? 'bg-whatsapp-secondary hover:bg-whatsapp-secondary/90' : ''}`}
+        >
+          <Clock className="h-3 w-3 mr-1" />
+          Custom Time
+        </Button>
       </div>
       
+      {/* Custom Time Input */}
       {useCustomTime && (
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground min-w-0">Time:</span>
+        <div className="mb-3">
           <Input
             type="datetime-local"
             value={customTime}
             onChange={(e) => setCustomTime(e.target.value)}
-            className="h-8 text-xs bg-white"
+            className="w-full border-gray-300 focus:border-whatsapp-primary focus:ring-whatsapp-primary"
+            placeholder="Select date and time"
           />
         </div>
       )}
       
-      <form onSubmit={handleSubmit} className="flex items-center gap-2">
-        <div className="flex items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-gray-500 hover:bg-gray-200"
+      {/* Message Input */}
+      <form onSubmit={handleSubmit} className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="sm" 
+            className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 p-2"
           >
-            <Smile className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-gray-500 hover:bg-gray-200"
-          >
-            <Paperclip className="h-4 w-4" />
+            <Paperclip className="h-5 w-5" />
           </Button>
         </div>
-        
-        <Input
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type a message"
-          className="flex-1 bg-white border-0 rounded-full px-4 focus-visible:ring-1 focus-visible:ring-[#25D366]"
-        />
-        
-        <Button
-          type="submit"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-gray-500 hover:bg-gray-200"
-          disabled={!message.trim()}
+
+        <div className="flex-1 relative">
+          <Input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Type a message"
+            className="w-full rounded-full border-gray-300 focus:border-whatsapp-primary focus:ring-whatsapp-primary pr-12 py-3"
+          />
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="sm" 
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 p-1"
+          >
+            <Smile className="h-5 w-5" />
+          </Button>
+        </div>
+
+        <Button 
+          type="submit" 
+          className={`rounded-full p-3 transition-all ${
+            message.trim() 
+              ? 'bg-whatsapp-primary hover:bg-whatsapp-primary/90' 
+              : 'bg-whatsapp-secondary hover:bg-whatsapp-secondary/90'
+          }`}
+          disabled={!message.trim() && !useCustomTime}
         >
-          {message.trim() ? <Send className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+          {message.trim() ? (
+            <Send className="h-5 w-5" />
+          ) : (
+            <Mic className="h-5 w-5" />
+          )}
         </Button>
       </form>
     </div>
