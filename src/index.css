@@ -50,14 +50,14 @@
 
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* WhatsApp Colors */
-    --whatsapp-primary: 150 63% 26%;
-    --whatsapp-primary-light: 150 84% 44%;
-    --whatsapp-secondary: 184 100% 34%;
-    --whatsapp-bg: 44 13% 91%;
-    --whatsapp-own-message: 90 43% 85%;
+    /* WhatsApp Colors - Modern Clean */
+    --whatsapp-primary: 153 52% 33%;
+    --whatsapp-primary-light: 153 60% 45%;
+    --whatsapp-secondary: 153 52% 33%;
+    --whatsapp-bg: 200 12% 95%;
+    --whatsapp-own-message: 153 47% 90%;
     --whatsapp-received-message: 0 0% 100%;
-    --whatsapp-header: 150 63% 26%;
+    --whatsapp-header: 153 52% 33%;
     --whatsapp-input-bg: 0 0% 100%;
   }
 
@@ -99,14 +99,14 @@
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* WhatsApp Colors - Dark Mode */
-    --whatsapp-primary: 150 63% 26%;
-    --whatsapp-primary-light: 150 84% 44%;
-    --whatsapp-secondary: 184 100% 34%;
-    --whatsapp-bg: 222 13% 8%;
-    --whatsapp-own-message: 150 63% 20%;
-    --whatsapp-received-message: 216 12% 16%;
-    --whatsapp-header: 150 63% 26%;
-    --whatsapp-input-bg: 216 12% 16%;
+    --whatsapp-primary: 153 52% 33%;
+    --whatsapp-primary-light: 153 60% 45%;
+    --whatsapp-secondary: 153 52% 33%;
+    --whatsapp-bg: 220 13% 10%;
+    --whatsapp-own-message: 153 40% 18%;
+    --whatsapp-received-message: 220 10% 18%;
+    --whatsapp-header: 153 52% 33%;
+    --whatsapp-input-bg: 220 10% 14%;
   }
 }
 

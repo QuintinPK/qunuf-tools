@@ -30,22 +30,22 @@ export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
   };
 
   return (
-    <div className="bg-whatsapp-input-bg border-t border-gray-200 p-4">
+    <div className="bg-whatsapp-input-bg border-t border-border px-3 py-2">
       {/* Sender Selection */}
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-1.5 mb-2">
         <Button
           variant={isOwn ? "default" : "outline"}
           size="sm"
           onClick={() => setIsOwn(true)}
-          className={`text-xs ${isOwn ? 'bg-whatsapp-primary hover:bg-whatsapp-primary/90' : ''}`}
+          className={`text-xs h-7 px-3 ${isOwn ? 'bg-whatsapp-primary hover:bg-whatsapp-primary/90 text-white' : ''}`}
         >
-          Me
+          Ik
         </Button>
         <Button
           variant={!isOwn ? "default" : "outline"}
           size="sm"
           onClick={() => setIsOwn(false)}
-          className={`text-xs ${!isOwn ? 'bg-whatsapp-primary hover:bg-whatsapp-primary/90' : ''}`}
+          className={`text-xs h-7 px-3 ${!isOwn ? 'bg-whatsapp-primary hover:bg-whatsapp-primary/90 text-white' : ''}`}
         >
           Contact
         </Button>
@@ -54,69 +54,62 @@ export const MessageInput = ({ onSendMessage }: MessageInputProps) => {
           variant={useCustomTime ? "default" : "outline"}
           size="sm"
           onClick={() => setUseCustomTime(!useCustomTime)}
-          className={`text-xs ml-auto ${useCustomTime ? 'bg-whatsapp-secondary hover:bg-whatsapp-secondary/90' : ''}`}
+          className={`text-xs h-7 px-2 ml-auto ${useCustomTime ? 'bg-whatsapp-primary hover:bg-whatsapp-primary/90 text-white' : ''}`}
         >
-          <Clock className="h-3 w-3 mr-1" />
-          Custom Time
+          <Clock className="h-3 w-3" />
         </Button>
       </div>
       
       {/* Custom Time Input */}
       {useCustomTime && (
-        <div className="mb-3">
+        <div className="mb-2">
           <Input
             type="datetime-local"
             value={customTime}
             onChange={(e) => setCustomTime(e.target.value)}
-            className="w-full border-gray-300 focus:border-whatsapp-primary focus:ring-whatsapp-primary"
-            placeholder="Select date and time"
+            className="w-full h-8 text-sm border-input"
           />
         </div>
       )}
       
       {/* Message Input */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-3">
-        <div className="flex items-center gap-2">
-          <Button 
-            type="button" 
-            variant="ghost" 
-            size="sm" 
-            className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 p-2"
-          >
-            <Paperclip className="h-5 w-5" />
-          </Button>
-        </div>
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <Button 
+          type="button" 
+          variant="ghost" 
+          size="sm" 
+          className="text-muted-foreground hover:text-foreground h-8 w-8 p-0"
+        >
+          <Paperclip className="h-4 w-4" />
+        </Button>
 
         <div className="flex-1 relative">
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message"
-            className="w-full rounded-full border-gray-300 focus:border-whatsapp-primary focus:ring-whatsapp-primary pr-12 py-3"
+            placeholder="Typ een bericht"
+            className="w-full rounded-full border-input h-9 text-sm pr-10"
           />
           <Button 
             type="button" 
             variant="ghost" 
             size="sm" 
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 p-1"
+            className="absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground h-7 w-7 p-0"
           >
-            <Smile className="h-5 w-5" />
+            <Smile className="h-4 w-4" />
           </Button>
         </div>
 
         <Button 
           type="submit" 
-          className={`rounded-full p-3 transition-all ${
-            message.trim() 
-              ? 'bg-whatsapp-primary hover:bg-whatsapp-primary/90' 
-              : 'bg-whatsapp-secondary hover:bg-whatsapp-secondary/90'
-          }`}
-          disabled={!message.trim() && !useCustomTime}
+          size="sm"
+          className="rounded-full h-9 w-9 p-0 bg-whatsapp-primary hover:bg-whatsapp-primary/90"
+          disabled={!message.trim()}
         >
           {message.trim() ? (
-            <Send className="h-5 w-5" />
+            <Send className="h-4 w-4" />
           ) : (
-            <Mic className="h-5 w-5" />
+            <Mic className="h-4 w-4" />
           )}
         </Button>
       </form>
