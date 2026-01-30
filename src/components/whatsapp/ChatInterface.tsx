@@ -11,14 +11,14 @@ interface ChatInterfaceProps {
 
 export const ChatInterface = ({ chat, onUpdateMessageTime, onUpdateContact }: ChatInterfaceProps) => {
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col bg-whatsapp-bg">
       <ChatHeader contact={chat.contact} onUpdateContact={onUpdateContact} />
       
-      <ScrollArea className="flex-1 px-6 py-4">
-        <div className="space-y-3">
+      <ScrollArea className="flex-1 px-4 py-3">
+        <div className="space-y-1">
           {chat.messages.length === 0 ? (
-            <div className="text-center text-gray-600 py-12">
-              <p className="text-lg">No messages yet. Start the conversation!</p>
+            <div className="text-center text-muted-foreground py-16">
+              <p className="text-sm">Start een gesprek</p>
             </div>
           ) : (
             chat.messages.map((message) => (

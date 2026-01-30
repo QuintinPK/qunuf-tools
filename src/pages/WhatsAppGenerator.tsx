@@ -185,15 +185,15 @@ const WhatsAppGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto space-y-4">
-        <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">WhatsApp Chat Generator</h1>
-          <p className="text-muted-foreground">Create realistic WhatsApp conversations</p>
+    <div className="min-h-screen bg-muted/30 p-4 md:p-6">
+      <div className="max-w-5xl mx-auto space-y-4">
+        <div className="text-center space-y-1">
+          <h1 className="text-2xl font-semibold text-foreground">WhatsApp Generator</h1>
+          <p className="text-sm text-muted-foreground">Maak realistische WhatsApp gesprekken</p>
         </div>
 
         <div className="grid lg:grid-cols-4 gap-4">
-          <div className="lg:col-span-1 space-y-4">
+          <div className="lg:col-span-1 space-y-3">
             <ContactSelector 
               contacts={contacts}
               onContactSelect={createNewChat}
@@ -206,38 +206,38 @@ const WhatsAppGenerator = () => {
             />
             
             {currentChat && (
-              <>
+              <div className="space-y-2">
                 {!currentChat.isSaved && (
                   <Button 
                     onClick={saveCurrentChat}
                     disabled={isSaving || currentChat.messages.length === 0}
-                    className="w-full"
+                    className="w-full h-8 text-xs"
                     variant="outline"
                   >
-                    <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? "Saving..." : "Save Chat"}
+                    <Save className="h-3 w-3 mr-1.5" />
+                    {isSaving ? "Opslaan..." : "Chat opslaan"}
                   </Button>
                 )}
                 {currentChat.isSaved && (
-                  <div className="text-xs text-muted-foreground text-center py-2">
-                    Chat auto-saved ✓
+                  <div className="text-[11px] text-muted-foreground text-center py-1">
+                    Automatisch opgeslagen ✓
                   </div>
                 )}
                 <ExportOptions chat={currentChat} />
-              </>
+              </div>
             )}
           </div>
 
           <div className="lg:col-span-3">
-            <Card className="h-[600px] flex flex-col overflow-hidden bg-whatsapp-bg border-0 shadow-lg whatsapp-chat-interface">
+            <Card className="h-[550px] flex flex-col overflow-hidden border shadow-sm">
               {currentChat ? (
                 <>
                   <ChatInterface chat={currentChat} onUpdateMessageTime={updateMessageTime} onUpdateContact={updateContact} />
                   <MessageInput onSendMessage={addMessage} />
                 </>
               ) : (
-                <div className="flex-1 flex items-center justify-center text-muted-foreground">
-                  <p>Select a contact to start creating a chat</p>
+                <div className="flex-1 flex items-center justify-center text-muted-foreground bg-whatsapp-bg">
+                  <p className="text-sm">Selecteer een contact om te beginnen</p>
                 </div>
               )}
             </Card>
