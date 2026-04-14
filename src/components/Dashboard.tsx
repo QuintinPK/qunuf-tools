@@ -13,6 +13,7 @@ import InvoiceDetailsDialog from './InvoiceDetailsDialog';
 import InvoiceStats from './InvoiceStats';
 import UnpaidTotal from './UnpaidTotal';
 import PercentageDifference from './PercentageDifference';
+import InvoiceExport from './InvoiceExport';
 import { cn } from '@/lib/utils';
 
 const Dashboard = () => {
@@ -184,8 +185,9 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="invoices" className="mt-12">
-          <TabsList className="grid w-[400px] grid-cols-2">
+          <TabsList className="grid w-[500px] grid-cols-3">
             <TabsTrigger value="invoices">Invoices</TabsTrigger>
+            <TabsTrigger value="export">Export</TabsTrigger>
             <TabsTrigger value="stats">Statistics</TabsTrigger>
           </TabsList>
 
@@ -301,6 +303,10 @@ const Dashboard = () => {
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="export" className="mt-6">
+            <InvoiceExport invoices={invoices} />
           </TabsContent>
 
           <TabsContent value="stats" className="mt-6">
