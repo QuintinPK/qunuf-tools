@@ -118,15 +118,12 @@ const Landing = () => {
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="pt-12 border-t border-border/60 text-center">
-          <p className="text-primary/40 text-sm font-medium uppercase tracking-[0.2em] mb-3">
+        {/* Section divider */}
+        <div className="pt-12 border-t border-border/60 text-center">
+          <p className="text-primary/40 text-sm font-medium uppercase tracking-[0.2em]">
             More tools coming soon
           </p>
-          <p className="text-muted-foreground/60 text-xs">
-            © {new Date().getFullYear()} Personal Tools Suite
-          </p>
-        </footer>
+        </div>
       </div>
     </div>
   );
